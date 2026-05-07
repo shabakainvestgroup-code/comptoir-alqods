@@ -2,18 +2,48 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Clock, Package, ShoppingBag, WalletCards } from "lucide-react";
+import { Clock, Eye, Package, ShoppingBag, WalletCards, X } from "lucide-react";
 import { formatPrice } from "@/lib/formatPrice";
+
+type AdminOrderItem = {
+  productId?: string;
+  product_id?: string;
+  name: string;
+  quantity: number;
+  unitPrice?: number;
+  unit_price?: number;
+  totalPrice?: number;
+  total_price?: number;
+};
 
 type AdminOrder = {
   id: string;
   orderNumber?: string;
   order_number?: string;
-  customer: { fullName?: string; full_name?: string; phone: string; city: string };
-  items: unknown[];
+  customer: {
+    fullName?: string;
+    full_name?: string;
+    phone: string;
+    email?: string;
+    address?: string;
+    city: string;
+    district?: string;
+    customerType?: string;
+    customer_type?: string;
+  };
+  items: AdminOrderItem[];
+  subtotal?: number;
+  deliveryFee?: number;
+  delivery_fee?: number;
   total: number;
+  paymentMethod?: string;
+  payment_method?: string;
+  paymentStatus?: string;
+  payment_status?: string;
   orderStatus?: string;
   order_status?: string;
+  createdAt?: string;
+  created_at?: string;
 };
 
 type AdminProduct = {
@@ -32,15 +62,44 @@ const statuses = [
   { value: "cancelled", label: "Annulée" }
 ];
 
+function orderNumber(order: AdminOrder) {
+  return order.orderNumber || order.order_number || "Commande";
+}
+
+function customerName(order: AdminOrder) {
+  return order.customer.fullName || order.customer.full_name || "Client";
+}
+
+function orderStatus(order: AdminOrder) {
+  return order.orderStatus || order.order_status || "pending";
+}
+
+function paymentMethod(order: AdminOrder) {
+  return order.paymentMethod || order.payment_method;
+}
+
+function paymentStatus(order: AdminOrder) {
+  return order.paymentStatus || order.payment_status;
+}
+
+function unitPrice(item: AdminOrderItem) {
+  return Number(item.unitPrice ?? item.unit_price ?? 0);
+}
+
+function totalPrice(item: AdminOrderItem) {
+  return Number(item.totalPrice ?? item.total_price ?? item.quantity * unitPrice(item));
+}
+
 export function AdminDashboard() {
   const [password, setPassword] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [message, setMessage] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
 
   const stats = useMemo(() => {
-    const pending = orders.filter((order) => (order.orderStatus || order.order_status) !== "delivered" && (order.orderStatus || order.order_status) !== "cancelled").length;
+    const pending = orders.filter((order) => orderStatus(order) !== "delivered" && orderStatus(order) !== "cancelled").length;
     const revenue = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
     return [
       { label: "Produits", value: products.length, icon: Package },
@@ -90,13 +149,14 @@ export function AdminDashboard() {
     await loadAdminData();
   }
 
-  async function updateStatus(id: string, orderStatus: string) {
+  async function updateStatus(id: string, nextStatus: string) {
     await fetch(`/api/admin/orders/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orderStatus })
+      body: JSON.stringify({ orderStatus: nextStatus })
     });
     await loadAdminData();
+    setSelectedOrder((current) => current && current.id === id ? { ...current, orderStatus: nextStatus, order_status: nextStatus } : current);
   }
 
   if (!authenticated) {
@@ -148,22 +208,22 @@ export function AdminDashboard() {
               <h2 className="text-2xl font-extrabold text-navy">Commandes</h2>
             </div>
             <div className="divide-y divide-line">
-              {orders.map((order) => {
-                const status = order.orderStatus || order.order_status || "pending";
-                return (
-                  <div key={order.id} className="grid gap-3 p-5 md:grid-cols-[120px_1fr_130px_170px] md:items-center">
-                    <strong className="text-navy">{order.orderNumber || order.order_number}</strong>
-                    <div>
-                      <p className="font-bold text-navy">{order.customer.fullName || order.customer.full_name || "Client"}</p>
-                      <p className="text-sm text-muted">{order.customer.city} · {order.customer.phone}</p>
-                    </div>
-                    <strong className="text-navy">{formatPrice(Number(order.total || 0))}</strong>
-                    <select value={status} onChange={(event) => updateStatus(order.id, event.target.value)} className="rounded-md border border-line px-3 py-2 text-sm font-bold outline-turquoise">
-                      {statuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-                    </select>
+              {orders.map((order) => (
+                <div key={order.id} className="grid gap-3 p-5 md:grid-cols-[120px_1fr_130px_170px_120px] md:items-center">
+                  <strong className="text-navy">{orderNumber(order)}</strong>
+                  <div>
+                    <p className="font-bold text-navy">{customerName(order)}</p>
+                    <p className="text-sm text-muted">{order.customer.city} · {order.customer.phone}</p>
                   </div>
-                );
-              })}
+                  <strong className="text-navy">{formatPrice(Number(order.total || 0))}</strong>
+                  <select value={orderStatus(order)} onChange={(event) => updateStatus(order.id, event.target.value)} className="rounded-md border border-line px-3 py-2 text-sm font-bold outline-turquoise">
+                    {statuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                  </select>
+                  <button onClick={() => setSelectedOrder(order)} className="inline-flex items-center justify-center gap-2 rounded-md bg-navy px-3 py-2 text-sm font-extrabold text-white">
+                    <Eye size={16} /> Détail
+                  </button>
+                </div>
+              ))}
             </div>
           </section>
 
@@ -183,6 +243,77 @@ export function AdminDashboard() {
           </section>
         </div>
       </div>
+
+      {selectedOrder && (
+        <div className="fixed inset-0 z-[90]">
+          <button className="absolute inset-0 bg-navy-deep/55" onClick={() => setSelectedOrder(null)} aria-label="Fermer le détail commande" />
+          <aside className="absolute right-0 top-0 flex h-full w-full max-w-2xl flex-col bg-white shadow-soft">
+            <div className="flex items-start justify-between gap-4 border-b border-line p-6">
+              <div>
+                <p className="text-sm font-extrabold uppercase text-turquoise">Récapitulatif commande</p>
+                <h2 className="mt-1 text-3xl font-black text-navy">{orderNumber(selectedOrder)}</h2>
+                <p className="mt-1 text-sm text-muted">{selectedOrder.createdAt || selectedOrder.created_at || "Date non renseignée"}</p>
+              </div>
+              <button onClick={() => setSelectedOrder(null)} className="grid h-10 w-10 place-items-center rounded-md border border-line" aria-label="Fermer">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-auto p-6">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-md border border-line p-4">
+                  <h3 className="font-extrabold text-navy">Client</h3>
+                  <div className="mt-3 space-y-1 text-sm text-muted">
+                    <p><strong className="text-navy">Nom :</strong> {customerName(selectedOrder)}</p>
+                    <p><strong className="text-navy">Téléphone :</strong> {selectedOrder.customer.phone}</p>
+                    <p><strong className="text-navy">Email :</strong> {selectedOrder.customer.email || "Non renseigné"}</p>
+                    <p><strong className="text-navy">Type :</strong> {selectedOrder.customer.customerType || selectedOrder.customer.customer_type || "Non renseigné"}</p>
+                  </div>
+                </div>
+                <div className="rounded-md border border-line p-4">
+                  <h3 className="font-extrabold text-navy">Livraison</h3>
+                  <div className="mt-3 space-y-1 text-sm text-muted">
+                    <p><strong className="text-navy">Adresse :</strong> {selectedOrder.customer.address || "Non renseignée"}</p>
+                    <p><strong className="text-navy">Quartier :</strong> {selectedOrder.customer.district || "Non renseigné"}</p>
+                    <p><strong className="text-navy">Ville :</strong> {selectedOrder.customer.city}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 overflow-hidden rounded-md border border-line">
+                <div className="grid grid-cols-[1fr_70px_110px_110px] gap-3 bg-soft-bg p-3 text-sm font-extrabold text-navy">
+                  <span>Produit</span>
+                  <span>Qté</span>
+                  <span>PU</span>
+                  <span>Total</span>
+                </div>
+                {selectedOrder.items.map((item, index) => (
+                  <div key={`${item.name}-${index}`} className="grid grid-cols-[1fr_70px_110px_110px] gap-3 border-t border-line p-3 text-sm">
+                    <span className="font-bold text-navy">{item.name}</span>
+                    <span>{item.quantity}</span>
+                    <span>{formatPrice(unitPrice(item))}</span>
+                    <span className="font-bold text-navy">{formatPrice(totalPrice(item))}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-5 rounded-md border border-line p-4">
+                <h3 className="font-extrabold text-navy">Paiement et total</h3>
+                <div className="mt-3 space-y-2 text-sm">
+                  <div className="flex justify-between"><span>Sous-total</span><strong>{formatPrice(Number(selectedOrder.subtotal || 0))}</strong></div>
+                  <div className="flex justify-between"><span>Livraison</span><strong>{formatPrice(Number(selectedOrder.deliveryFee ?? selectedOrder.delivery_fee ?? 0))}</strong></div>
+                  <div className="flex justify-between text-lg font-black text-navy"><span>Total</span><span>{formatPrice(Number(selectedOrder.total || 0))}</span></div>
+                  <div className="border-t border-line pt-2 text-muted">
+                    <p><strong className="text-navy">Mode :</strong> {paymentMethod(selectedOrder) === "card" ? "Carte bancaire" : "Paiement à la livraison"}</p>
+                    <p><strong className="text-navy">Statut paiement :</strong> {paymentStatus(selectedOrder) || "Non renseigné"}</p>
+                    <p><strong className="text-navy">Statut commande :</strong> {statuses.find((item) => item.value === orderStatus(selectedOrder))?.label || orderStatus(selectedOrder)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      )}
     </section>
   );
 }
