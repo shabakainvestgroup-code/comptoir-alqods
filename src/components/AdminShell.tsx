@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Boxes, LayoutDashboard, PackageSearch, Settings, ShoppingBag } from "lucide-react";
+import { Boxes, LayoutDashboard, PackageSearch, Settings, ShoppingBag, Users } from "lucide-react";
 
 const links = [
   { href: "/admin", label: "Tableau de bord", icon: LayoutDashboard },
   { href: "/admin/commandes", label: "Commandes", icon: ShoppingBag },
+  { href: "/admin/clients", label: "Clients", icon: Users },
   { href: "/admin/produits", label: "Produits", icon: PackageSearch },
   { href: "/admin/stock", label: "Stock", icon: Boxes },
   { href: "/admin/parametres", label: "Paramètres", icon: Settings }

@@ -2,23 +2,27 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Boxes, PackageSearch, ShoppingBag, WalletCards } from "lucide-react";
+import { Boxes, PackageSearch, ShoppingBag, Users, WalletCards } from "lucide-react";
 import { formatPrice } from "@/lib/formatPrice";
 
 type Order = { total: number; order_status?: string; orderStatus?: string };
 type Product = { stock: number };
+type Customer = { id: string };
 
 export function AdminHome() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
 
   useEffect(() => {
     Promise.all([
       fetch("/api/admin/orders?pageSize=10").then((response) => response.json()),
-      fetch("/api/admin/products?pageSize=10").then((response) => response.json())
-    ]).then(([ordersData, productsData]) => {
+      fetch("/api/admin/products?pageSize=10").then((response) => response.json()),
+      fetch("/api/admin/customers?pageSize=10").then((response) => response.json())
+    ]).then(([ordersData, productsData, customersData]) => {
       setOrders(ordersData.orders || []);
       setProducts(productsData.products || []);
+      setCustomers(customersData.customers || []);
     });
   }, []);
 
@@ -29,14 +33,15 @@ export function AdminHome() {
     return [
       { label: "Commandes récentes", value: orders.length, icon: ShoppingBag, href: "/admin/commandes" },
       { label: "À traiter", value: pending, icon: ShoppingBag, href: "/admin/commandes?status=pending" },
+      { label: "Clients", value: customers.length, icon: Users, href: "/admin/clients" },
       { label: "Produits chargés", value: products.length, icon: PackageSearch, href: "/admin/produits" },
       { label: "Stock faible", value: low, icon: Boxes, href: "/admin/stock?mode=low" },
       { label: "Total récent", value: formatPrice(revenue), icon: WalletCards, href: "/admin/commandes" }
     ];
-  }, [orders, products]);
+  }, [orders, products, customers]);
 
   return (
-    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-6">
       {cards.map(({ label, value, icon: Icon, href }) => (
         <Link key={label} href={href} className="rounded-md border border-line bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-soft">
           <Icon className="text-turquoise" />
