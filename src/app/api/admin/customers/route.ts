@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/adminAuth";
+import { csvResponse } from "@/lib/csv";
 import { isSupabaseConfigured, listRows } from "@/lib/supabaseRest";
 
 type Customer = {
@@ -60,6 +61,28 @@ function orderBelongsToCustomer(order: Order, customer: Customer) {
   return identifiers.some((identifier) => orderIdentifiers.includes(identifier));
 }
 
+function exportCustomersCsv(customers: (Customer & { orders_count?: number; revenue?: number })[]) {
+  const rows = [
+    ["Nom", "Telephone", "Email", "CNI", "Ville", "Quartier", "Type client", "Telephone verifie", "Email verifie", "Commandes", "Total depense TTC", "Derniere commande"],
+    ...customers.map((customer) => [
+      customer.full_name,
+      customer.phone,
+      customer.email || "",
+      customer.cni || "",
+      customer.city || "",
+      customer.district || "",
+      customer.customer_type || "",
+      customer.phone_verified ? "Oui" : "Non",
+      customer.email_verified ? "Oui" : "Non",
+      customer.orders_count || 0,
+      Number(customer.revenue || 0).toFixed(2),
+      customer.last_order_at ? new Date(customer.last_order_at).toLocaleDateString("fr-FR") : ""
+    ])
+  ];
+
+  return csvResponse(`clients-comptoir-alqods-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+}
+
 export async function GET(request: Request) {
   if (!isAdminAuthenticated()) {
     return NextResponse.json({ ok: false, message: "Non autorisé." }, { status: 401 });
@@ -70,6 +93,7 @@ export async function GET(request: Request) {
   const pageSize = Math.min(100, Math.max(10, Number(url.searchParams.get("pageSize") || 50)));
   const search = (url.searchParams.get("search") || "").trim();
   const verification = url.searchParams.get("verification") || "";
+  const shouldExport = url.searchParams.get("export") === "csv";
   const offset = (page - 1) * pageSize;
 
   if (!isSupabaseConfigured()) {
@@ -119,6 +143,20 @@ export async function GET(request: Request) {
       orders: customerOrders.slice(0, 10)
     };
   });
+
+  if (shouldExport) {
+    const exported = filtered.map((customer) => {
+      const customerOrders = orders.filter((order) => orderBelongsToCustomer(order, customer));
+      const revenue = customerOrders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+      return {
+        ...customer,
+        orders_count: customerOrders.length,
+        revenue
+      };
+    });
+
+    return exportCustomersCsv(exported);
+  }
 
   return NextResponse.json({
     ok: true,

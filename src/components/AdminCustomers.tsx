@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Eye, Search, X } from "lucide-react";
+import { Download, Eye, Search, X } from "lucide-react";
 import { AdminPager } from "@/components/AdminPager";
 import { formatPrice } from "@/lib/formatPrice";
 
@@ -63,6 +63,13 @@ export function AdminCustomers() {
     setLoading(false);
   }
 
+  function exportCsv() {
+    const params = new URLSearchParams({ export: "csv", pageSize: "100" });
+    if (search) params.set("search", search);
+    if (verification) params.set("verification", verification);
+    window.location.href = `/api/admin/customers?${params.toString()}`;
+  }
+
   useEffect(() => {
     load();
   }, [page, verification]);
@@ -70,7 +77,7 @@ export function AdminCustomers() {
   return (
     <>
       <section className="overflow-hidden rounded-md border border-line bg-white shadow-sm">
-        <div className="grid gap-3 border-b border-line p-5 lg:grid-cols-[1fr_240px_120px]">
+        <div className="grid gap-3 border-b border-line p-5 lg:grid-cols-[1fr_240px_120px_170px]">
           <label className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={18} />
             <input value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => event.key === "Enter" && load()} placeholder="Rechercher nom, téléphone, email, CNI..." className="w-full rounded-md border border-line py-3 pl-11 pr-4 outline-turquoise" />
@@ -79,6 +86,7 @@ export function AdminCustomers() {
             {verificationFilters.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
           <button onClick={() => { setPage(1); load(); }} className="rounded-md bg-turquoise px-4 py-3 font-extrabold text-white">Filtrer</button>
+          <button onClick={exportCsv} className="inline-flex items-center justify-center gap-2 rounded-md border border-navy px-4 py-3 font-extrabold text-navy"><Download size={18} /> Export CSV</button>
         </div>
 
         <div className="divide-y divide-line">

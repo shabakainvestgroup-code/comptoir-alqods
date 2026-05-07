@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Eye, X } from "lucide-react";
+import { Download, Eye, X } from "lucide-react";
 import { AdminPager } from "@/components/AdminPager";
 import { formatPrice } from "@/lib/formatPrice";
 
@@ -61,6 +61,13 @@ export function AdminOrders() {
     setTotalPages(data.totalPages || 1);
   }
 
+  function exportCsv() {
+    const params = new URLSearchParams({ export: "csv", pageSize: "100" });
+    if (status) params.set("status", status);
+    if (search) params.set("search", search);
+    window.location.href = `/api/admin/orders?${params.toString()}`;
+  }
+
   useEffect(() => {
     load();
   }, [page, status]);
@@ -78,12 +85,13 @@ export function AdminOrders() {
   return (
     <>
       <section className="overflow-hidden rounded-md border border-line bg-white shadow-sm">
-        <div className="grid gap-3 border-b border-line p-5 lg:grid-cols-[1fr_220px_120px]">
+        <div className="grid gap-3 border-b border-line p-5 lg:grid-cols-[1fr_220px_120px_170px]">
           <input value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => event.key === "Enter" && load()} placeholder="Rechercher commande, client, téléphone..." className="rounded-md border border-line px-4 py-3 outline-turquoise" />
           <select value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }} className="rounded-md border border-line px-4 py-3 outline-turquoise">
             {statuses.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
           <button onClick={() => { setPage(1); load(); }} className="rounded-md bg-turquoise px-4 py-3 font-extrabold text-white">Filtrer</button>
+          <button onClick={exportCsv} className="inline-flex items-center justify-center gap-2 rounded-md border border-navy px-4 py-3 font-extrabold text-navy"><Download size={18} /> Export CSV</button>
         </div>
         <div className="divide-y divide-line">
           {orders.map((order) => (
