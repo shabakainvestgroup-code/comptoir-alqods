@@ -3,6 +3,7 @@ import { MapPin, Mail, Phone, MessageCircle } from "lucide-react";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { ContactForm } from "@/components/ContactForm";
 import { BenefitStrip } from "@/components/BenefitStrip";
+import { store } from "@/data/store";
 
 export const metadata: Metadata = {
   title: "Contact | Comptoir AlQods Marrakech",
@@ -22,16 +23,25 @@ export default function ContactPage() {
           <div className="grid gap-6 lg:grid-cols-[.8fr_1.2fr]">
             <div className="space-y-4">
               {[
-                [Phone, "Téléphone", "05 22 12 34 56"],
-                [MessageCircle, "WhatsApp", "06 61 23 45 67"],
-                [Mail, "Email", "contact@comptoiralqods.ma"],
-                [MapPin, "Adresse", "Marrakech, Maroc"]
+                [Phone, "Téléphone", store.phone],
+                [MessageCircle, "WhatsApp", store.whatsapp],
+                [Mail, "Email", store.email],
+                [MapPin, "Adresse", store.address]
               ].map(([Icon, title, text]) => {
                 const TypedIcon = Icon as typeof Phone;
                 return <div key={String(title)} className="flex gap-3 rounded-md border border-line bg-white p-5 shadow-sm"><TypedIcon className="text-turquoise" /><div><p className="font-extrabold text-navy">{String(title)}</p><p className="text-muted">{String(text)}</p></div></div>;
               })}
-              <div className="grid h-72 place-items-center rounded-md border border-line bg-white p-5 text-center text-muted shadow-sm">
-                <div><MapPin className="mx-auto mb-3 text-turquoise" size={42} /><p className="font-extrabold text-navy">Carte Google Maps</p><p>Placeholder emplacement magasin à Marrakech</p></div>
+              <div className="overflow-hidden rounded-md border border-line bg-white shadow-sm">
+                <iframe
+                  title="Carte Comptoir AlQods"
+                  src={store.mapEmbedUrl}
+                  className="h-72 w-full border-0"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+                <a href={store.mapsSearchUrl} className="block px-5 py-3 text-sm font-bold text-turquoise" target="_blank" rel="noreferrer">
+                  Ouvrir dans Google Maps →
+                </a>
               </div>
             </div>
             <ContactForm />

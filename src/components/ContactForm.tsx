@@ -1,12 +1,43 @@
+"use client";
+
+import { useState } from "react";
+
 export function ContactForm() {
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+
+  async function submitContact(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setStatus("sending");
+    const form = new FormData(event.currentTarget);
+    const payload = Object.fromEntries(form.entries());
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      setStatus(response.ok ? "sent" : "error");
+      if (response.ok) event.currentTarget.reset();
+    } catch {
+      setStatus("error");
+    }
+  }
+
   return (
-    <form className="grid gap-4 rounded-md border border-line bg-white p-6 shadow-sm">
-      {["Nom complet", "Téléphone", "Email", "Sujet"].map((label) => (
-        <label key={label} className="grid gap-2 text-sm font-bold text-navy">{label}<input className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" /></label>
-      ))}
-      <label className="grid gap-2 text-sm font-bold text-navy">Catégorie concernée<select className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise"><option>Électricité</option><option>Sanitaires</option><option>Plomberie</option><option>Outillage</option><option>Quincaillerie</option><option>Peintures</option></select></label>
-      <label className="grid gap-2 text-sm font-bold text-navy">Message<textarea rows={5} className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" /></label>
-      <button className="rounded-md bg-turquoise px-5 py-3 font-extrabold text-white">Envoyer ma demande</button>
+    <form onSubmit={submitContact} className="grid gap-4 rounded-md border border-line bg-white p-6 shadow-sm">
+      <label className="grid gap-2 text-sm font-bold text-navy">Nom complet<input name="fullName" required className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" /></label>
+      <label className="grid gap-2 text-sm font-bold text-navy">Téléphone<input name="phone" required className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" /></label>
+      <label className="grid gap-2 text-sm font-bold text-navy">Email<input name="email" type="email" required className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" /></label>
+      <label className="grid gap-2 text-sm font-bold text-navy">Sujet<input name="subject" required className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" /></label>
+      <label className="grid gap-2 text-sm font-bold text-navy">Catégorie concernée<select name="category" className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise"><option>Électricité</option><option>Sanitaires</option><option>Plomberie</option><option>Outillage</option><option>Quincaillerie</option><option>Peintures</option></select></label>
+      <label className="grid gap-2 text-sm font-bold text-navy">Message<textarea name="message" required rows={5} className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" /></label>
+      {status === "sent" && <p className="rounded-md bg-stock/10 p-3 text-sm font-bold text-stock">Votre demande a bien été enregistrée. L’équipe Comptoir AlQods vous répondra rapidement.</p>}
+      {status === "error" && <p className="rounded-md bg-alert/10 p-3 text-sm font-bold text-alert">Impossible d’envoyer la demande pour le moment. Vous pouvez nous contacter par téléphone ou WhatsApp.</p>}
+      <button disabled={status === "sending"} className="rounded-md bg-turquoise px-5 py-3 font-extrabold text-white disabled:bg-muted">
+        {status === "sending" ? "Envoi en cours..." : "Envoyer ma demande"}
+      </button>
     </form>
   );
 }

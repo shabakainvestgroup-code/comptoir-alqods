@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { categories } from "@/data/categories";
+import { legalPages, store } from "@/data/store";
 
 export function Footer() {
   return (
@@ -13,29 +14,39 @@ export function Footer() {
         </div>
         <div>
           <h3 className="mb-4 font-extrabold">Catégories</h3>
-          <div className="space-y-2 text-sm text-white/75">{categories.map((category) => <Link key={category.slug} className="block hover:text-turquoise-light" href={`/${category.slug}`}>{category.name}</Link>)}</div>
+          <div className="space-y-2 text-sm text-white/75">
+            {categories.map((category) => (
+              <Link key={category.slug} className="block hover:text-turquoise-light" href={`/${category.slug}`}>
+                {category.name}
+              </Link>
+            ))}
+          </div>
         </div>
         <div>
           <h3 className="mb-4 font-extrabold">Informations</h3>
           <div className="space-y-2 text-sm text-white/75">
-            {["À propos de nous", "Nos services", "Livraison & retours", "Conditions générales", "Mentions légales", "Contact"].map((item) => <p key={item}>{item}</p>)}
+            {legalPages.map((item) => (
+              <Link key={item.href} className="block hover:text-turquoise-light" href={item.href}>
+                {item.label}
+              </Link>
+            ))}
           </div>
         </div>
         <div>
           <h3 className="mb-4 font-extrabold">Horaires</h3>
           <div className="space-y-2 text-sm text-white/75">
-            <p>Lundi - Vendredi : 08h30 - 18h30</p>
-            <p>Samedi : 08h30 - 17h00</p>
-            <p>Dimanche : Fermé</p>
+            <p>{store.hours.weekdays}</p>
+            <p>{store.hours.saturday}</p>
+            <p>{store.hours.sunday}</p>
           </div>
         </div>
         <div>
           <h3 className="mb-4 font-extrabold">Contact</h3>
           <div className="space-y-2 text-sm text-white/75">
-            <p>Marrakech, Maroc</p>
-            <p>05 22 12 34 56</p>
-            <p>contact@comptoiralqods.ma</p>
-            <p>WhatsApp : 06 61 23 45 67</p>
+            <p>{store.address}</p>
+            <p>{store.phone}</p>
+            <p>{store.email}</p>
+            <p>WhatsApp : {store.whatsapp}</p>
           </div>
           <div className="mt-4 rounded-md border border-white/15 p-3 text-xs text-white/70">
             Paiement sécurisé par carte bancaire<br />Paiement à la livraison disponible<br />Livraison à Marrakech et partout au Maroc
