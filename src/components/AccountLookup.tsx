@@ -35,7 +35,13 @@ export function AccountLookup() {
   const [emailCode, setEmailCode] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [turnstileKey, setTurnstileKey] = useState(0);
   const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+
+  function resetHumanCheck() {
+    setTurnstileToken("");
+    setTurnstileKey((value) => value + 1);
+  }
 
   async function lookup(event?: React.FormEvent<HTMLFormElement>) {
     event?.preventDefault();
@@ -54,6 +60,7 @@ export function AccountLookup() {
     });
     const data = await response.json();
     setLoading(false);
+    resetHumanCheck();
 
     if (!response.ok) {
       setCustomer(null);
@@ -68,23 +75,35 @@ export function AccountLookup() {
 
   async function sendEmailCode() {
     setEmailMessage("");
+    if (turnstileEnabled && !turnstileToken) {
+      setEmailMessage("Veuillez attendre une nouvelle validation humaine.");
+      return;
+    }
+
     const response = await fetch("/api/account/email/send-code", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ identifier, turnstileToken })
     });
     const data = await response.json();
+    resetHumanCheck();
     setEmailMessage(data.message || (response.ok ? "Code envoyé." : "Envoi impossible."));
   }
 
   async function verifyEmailCode() {
     setEmailMessage("");
+    if (turnstileEnabled && !turnstileToken) {
+      setEmailMessage("Veuillez attendre une nouvelle validation humaine.");
+      return;
+    }
+
     const response = await fetch("/api/account/email/verify-code", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ identifier, code: emailCode, turnstileToken })
     });
     const data = await response.json();
+    resetHumanCheck();
     setEmailMessage(data.message || (response.ok ? "Email vérifié." : "Code invalide."));
     if (response.ok) await lookup();
   }
@@ -100,7 +119,7 @@ export function AccountLookup() {
           <input value={identifier} onChange={(event) => setIdentifier(event.target.value)} required className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" />
         </label>
         <div className="mt-4">
-          <TurnstileWidget action="account_lookup" onVerify={setTurnstileToken} />
+          <TurnstileWidget key={turnstileKey} action="account_lookup" onVerify={setTurnstileToken} />
         </div>
         {message && <p className="mt-4 rounded-md bg-alert/10 p-3 text-sm font-bold text-alert">{message}</p>}
         <button disabled={loading || (turnstileEnabled && !turnstileToken)} className="mt-5 w-full rounded-md bg-turquoise px-5 py-3 font-extrabold text-white disabled:bg-muted">
