@@ -7,6 +7,8 @@ export const env = {
   supabaseUrl: process.env.SUPABASE_URL,
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
   supabaseStorageBucket: process.env.SUPABASE_STORAGE_BUCKET || "product-images",
+  turnstileSiteKey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
+  turnstileSecretKey: process.env.TURNSTILE_SECRET_KEY,
   paymentProvider: process.env.PAYMENT_PROVIDER || "demo",
   cmiMerchantId: process.env.CMI_MERCHANT_ID,
   cmiStoreKey: process.env.CMI_STORE_KEY,

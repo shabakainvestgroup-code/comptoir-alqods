@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CreditCard, HandCoins } from "lucide-react";
 import { useCart } from "@/components/CartProvider";
+import { TurnstileWidget } from "@/components/TurnstileWidget";
 import { calculateDeliveryFee } from "@/lib/delivery";
 import { formatPrice } from "@/lib/formatPrice";
 import { preparePayment } from "@/lib/payments";
@@ -17,6 +18,7 @@ export function CheckoutForm() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash_on_delivery");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
   const deliveryFee = useMemo(() => calculateDeliveryFee(city, deliveryMethod), [city, deliveryMethod]);
   const total = cart.subtotal + deliveryFee;
 
@@ -44,7 +46,8 @@ export function CheckoutForm() {
         unitPrice: line.product.price,
         totalPrice: line.lineTotal
       })),
-      paymentMethod
+      paymentMethod,
+      turnstileToken
     };
 
     try {
@@ -61,7 +64,7 @@ export function CheckoutForm() {
       cart.clear();
       router.push(payment.redirectUrl || "/commande/confirmation");
     } catch {
-      setError("Impossible d’enregistrer la commande. Vérifiez les informations ou contactez Comptoir AlQods par téléphone.");
+      setError("Impossible d’enregistrer la commande. Vérifiez la validation humaine et les informations saisies.");
       setIsSubmitting(false);
     }
   }
@@ -117,6 +120,9 @@ export function CheckoutForm() {
           <div className="flex justify-between"><span>Sous-total</span><strong>{formatPrice(cart.subtotal)}</strong></div>
           <div className="flex justify-between"><span>Livraison</span><strong>{formatPrice(deliveryFee)}</strong></div>
           <div className="flex justify-between text-xl font-extrabold text-navy"><span>Total</span><span>{formatPrice(total)}</span></div>
+        </div>
+        <div className="mt-5">
+          <TurnstileWidget action="checkout" onVerify={setTurnstileToken} />
         </div>
         {error && <p className="mt-4 rounded-md bg-alert/10 p-3 text-sm font-bold text-alert">{error}</p>}
         <button disabled={cart.lines.length === 0 || isSubmitting} className="mt-5 w-full rounded-md bg-turquoise px-5 py-3 font-extrabold text-white disabled:cursor-not-allowed disabled:bg-muted">

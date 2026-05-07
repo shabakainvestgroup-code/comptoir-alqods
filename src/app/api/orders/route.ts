@@ -4,10 +4,17 @@ import type { CreateOrderInput } from "@/lib/orders";
 import { insertRow, isSupabaseConfigured } from "@/lib/supabaseRest";
 import { sendOrderEmails } from "@/lib/email";
 import type { Order } from "@/types/order";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 export async function POST(request: Request) {
   try {
-    const payload = (await request.json()) as CreateOrderInput;
+    const payload = (await request.json()) as CreateOrderInput & { turnstileToken?: string };
+    const turnstile = await verifyTurnstileToken(payload.turnstileToken, request);
+
+    if (!turnstile.success) {
+      return NextResponse.json({ ok: false, message: "Vérification humaine invalide." }, { status: 403 });
+    }
+
     const order = createOrder(payload);
     let storedOrder = order;
 
