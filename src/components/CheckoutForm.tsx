@@ -19,11 +19,17 @@ export function CheckoutForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
+  const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
   const deliveryFee = useMemo(() => calculateDeliveryFee(city, deliveryMethod), [city, deliveryMethod]);
   const total = cart.subtotal + deliveryFee;
 
   async function submitOrder(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (turnstileEnabled && !turnstileToken) {
+      setError("Veuillez attendre la validation humaine Cloudflare avant de confirmer la commande.");
+      return;
+    }
+
     setIsSubmitting(true);
     setError("");
 
@@ -125,8 +131,8 @@ export function CheckoutForm() {
           <TurnstileWidget action="checkout" onVerify={setTurnstileToken} />
         </div>
         {error && <p className="mt-4 rounded-md bg-alert/10 p-3 text-sm font-bold text-alert">{error}</p>}
-        <button disabled={cart.lines.length === 0 || isSubmitting} className="mt-5 w-full rounded-md bg-turquoise px-5 py-3 font-extrabold text-white disabled:cursor-not-allowed disabled:bg-muted">
-          {isSubmitting ? "Enregistrement..." : "Confirmer ma commande"}
+        <button disabled={cart.lines.length === 0 || isSubmitting || (turnstileEnabled && !turnstileToken)} className="mt-5 w-full rounded-md bg-turquoise px-5 py-3 font-extrabold text-white disabled:cursor-not-allowed disabled:bg-muted">
+          {isSubmitting ? "Enregistrement..." : turnstileEnabled && !turnstileToken ? "Validation humaine en cours..." : "Confirmer ma commande"}
         </button>
       </aside>
     </form>

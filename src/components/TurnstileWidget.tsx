@@ -25,8 +25,10 @@ export function TurnstileWidget({ onVerify, action }: { onVerify: (token: string
     widgetIdRef.current = window.turnstile.render(containerRef.current, {
       sitekey: siteKey,
       theme: "light",
-      size: "flexible",
+      size: "normal",
       action,
+      language: "fr",
+      appearance: "always",
       callback: (token: string) => onVerify(token),
       "expired-callback": () => onVerify(""),
       "error-callback": () => onVerify("")
@@ -47,7 +49,8 @@ export function TurnstileWidget({ onVerify, action }: { onVerify: (token: string
   return (
     <>
       <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" strategy="afterInteractive" onLoad={() => setScriptReady(true)} />
-      <div className="rounded-md border border-line bg-white p-3">
+      <div className="min-h-[88px] rounded-md border border-line bg-white p-3">
+        {!scriptReady && <p className="text-sm font-bold text-muted">Chargement de la vérification humaine...</p>}
         <div ref={containerRef} />
       </div>
     </>

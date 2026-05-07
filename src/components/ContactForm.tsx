@@ -6,9 +6,15 @@ import { TurnstileWidget } from "@/components/TurnstileWidget";
 export function ContactForm() {
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [turnstileToken, setTurnstileToken] = useState("");
+  const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
 
   async function submitContact(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (turnstileEnabled && !turnstileToken) {
+      setStatus("error");
+      return;
+    }
+
     setStatus("sending");
     const form = new FormData(event.currentTarget);
     const payload = { ...Object.fromEntries(form.entries()), turnstileToken };
@@ -38,8 +44,8 @@ export function ContactForm() {
       <TurnstileWidget action="contact" onVerify={setTurnstileToken} />
       {status === "sent" && <p className="rounded-md bg-stock/10 p-3 text-sm font-bold text-stock">Votre demande a bien été enregistrée. L’équipe Comptoir AlQods vous répondra rapidement.</p>}
       {status === "error" && <p className="rounded-md bg-alert/10 p-3 text-sm font-bold text-alert">Impossible d’envoyer la demande. Vérifiez la validation humaine ou contactez-nous par téléphone.</p>}
-      <button disabled={status === "sending"} className="rounded-md bg-turquoise px-5 py-3 font-extrabold text-white disabled:bg-muted">
-        {status === "sending" ? "Envoi en cours..." : "Envoyer ma demande"}
+      <button disabled={status === "sending" || (turnstileEnabled && !turnstileToken)} className="rounded-md bg-turquoise px-5 py-3 font-extrabold text-white disabled:bg-muted">
+        {status === "sending" ? "Envoi en cours..." : turnstileEnabled && !turnstileToken ? "Validation humaine en cours..." : "Envoyer ma demande"}
       </button>
     </form>
   );
