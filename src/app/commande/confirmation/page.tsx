@@ -9,9 +9,12 @@ import { useEffect, useState } from "react";
 
 type LastOrder = {
   orderNumber: string;
+  order_number?: string;
   customer: { fullName: string; address: string; city: string; district?: string };
   items: { name: string; quantity: number; totalPrice: number }[];
+  delivery_fee?: number;
   total: number;
+  payment_method?: "card" | "cash_on_delivery";
   deliveryFee: number;
   paymentMethod: "card" | "cash_on_delivery";
 };
@@ -33,7 +36,7 @@ export default function ConfirmationPage() {
             <CheckCircle2 className="mx-auto text-stock" size={64} />
             <h1 className="mt-4 text-3xl font-black text-navy">Commande confirmée</h1>
             <p className="mx-auto mt-3 max-w-2xl text-muted">Merci pour votre commande. Votre commande a bien été enregistrée. L’équipe Comptoir AlQods vous contactera si nécessaire pour confirmer les détails de livraison.</p>
-            <p className="mt-4 text-xl font-extrabold text-turquoise">Numéro de commande : {order?.orderNumber || "CA-DEMO"}</p>
+            <p className="mt-4 text-xl font-extrabold text-turquoise">Numéro de commande : {order?.orderNumber || order?.order_number || "CA-DEMO"}</p>
           </div>
           <div className="mt-6 rounded-md border border-line bg-white p-6 shadow-sm">
             <h2 className="text-2xl font-extrabold text-navy">Récapitulatif</h2>
@@ -42,7 +45,7 @@ export default function ConfirmationPage() {
                 <div className="mt-4 space-y-3">{order.items.map((item) => <div key={item.name} className="flex justify-between gap-3 border-b border-line pb-2"><span>{item.quantity} × {item.name}</span><strong>{formatPrice(item.totalPrice)}</strong></div>)}</div>
                 <div className="mt-4 grid gap-2 text-muted">
                   <p><strong className="text-navy">Total :</strong> {formatPrice(order.total)}</p>
-                  <p><strong className="text-navy">Mode de paiement :</strong> {order.paymentMethod === "card" ? "Paiement par carte bancaire" : "Paiement à la livraison"}</p>
+                  <p><strong className="text-navy">Mode de paiement :</strong> {(order.paymentMethod || order.payment_method) === "card" ? "Paiement par carte bancaire" : "Paiement à la livraison"}</p>
                   <p><strong className="text-navy">Adresse :</strong> {order.customer.address}, {order.customer.district} {order.customer.city}</p>
                 </div>
               </>

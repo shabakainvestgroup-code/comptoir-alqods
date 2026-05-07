@@ -1,7 +1,11 @@
 export const env = {
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
   adminEmail: process.env.ADMIN_ORDER_EMAIL || "contact@comptoiralqods.ma",
+  emailFrom: process.env.EMAIL_FROM || "Comptoir AlQods <onboarding@resend.dev>",
   resendApiKey: process.env.RESEND_API_KEY,
+  adminPassword: process.env.ADMIN_PASSWORD || "change-me",
+  supabaseUrl: process.env.SUPABASE_URL,
+  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
   paymentProvider: process.env.PAYMENT_PROVIDER || "demo",
   cmiMerchantId: process.env.CMI_MERCHANT_ID,
   cmiStoreKey: process.env.CMI_STORE_KEY,

@@ -15,16 +15,19 @@ export function CheckoutForm() {
   const [city, setCity] = useState("Marrakech");
   const [deliveryMethod, setDeliveryMethod] = useState("home");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash_on_delivery");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const deliveryFee = useMemo(() => calculateDeliveryFee(city, deliveryMethod), [city, deliveryMethod]);
   const total = cart.subtotal + deliveryFee;
 
-  function submitOrder(event: React.FormEvent<HTMLFormElement>) {
+  async function submitOrder(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setIsSubmitting(true);
+    setError("");
+
     const form = new FormData(event.currentTarget);
     const payment = preparePayment(paymentMethod);
-    const orderNumber = `CA-${Date.now().toString().slice(-6)}`;
-    const order = {
-      orderNumber,
+    const payload = {
       customer: {
         fullName: String(form.get("fullName") || ""),
         phone: String(form.get("phone") || ""),
@@ -34,18 +37,33 @@ export function CheckoutForm() {
         district: String(form.get("district") || ""),
         customerType: String(form.get("customerType") || "particulier")
       },
-      items: cart.lines.map((line) => ({ productId: line.productId, name: line.product.name, quantity: line.quantity, unitPrice: line.product.price, totalPrice: line.lineTotal })),
-      subtotal: cart.subtotal,
-      deliveryFee,
-      total,
-      paymentMethod,
-      paymentStatus: payment.paymentStatus,
-      orderStatus: "confirmed",
-      createdAt: new Date().toISOString()
+      items: cart.lines.map((line) => ({
+        productId: line.productId,
+        name: line.product.name,
+        quantity: line.quantity,
+        unitPrice: line.product.price,
+        totalPrice: line.lineTotal
+      })),
+      paymentMethod
     };
-    window.localStorage.setItem("comptoir-alqods-last-order", JSON.stringify(order));
-    cart.clear();
-    router.push(payment.redirectUrl || "/commande/confirmation");
+
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error("Order failed");
+
+      const data = await response.json();
+      window.localStorage.setItem("comptoir-alqods-last-order", JSON.stringify(data.order));
+      cart.clear();
+      router.push(payment.redirectUrl || "/commande/confirmation");
+    } catch {
+      setError("Impossible d’enregistrer la commande. Vérifiez les informations ou contactez Comptoir AlQods par téléphone.");
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -100,7 +118,10 @@ export function CheckoutForm() {
           <div className="flex justify-between"><span>Livraison</span><strong>{formatPrice(deliveryFee)}</strong></div>
           <div className="flex justify-between text-xl font-extrabold text-navy"><span>Total</span><span>{formatPrice(total)}</span></div>
         </div>
-        <button disabled={cart.lines.length === 0} className="mt-5 w-full rounded-md bg-turquoise px-5 py-3 font-extrabold text-white disabled:cursor-not-allowed disabled:bg-muted">Confirmer ma commande</button>
+        {error && <p className="mt-4 rounded-md bg-alert/10 p-3 text-sm font-bold text-alert">{error}</p>}
+        <button disabled={cart.lines.length === 0 || isSubmitting} className="mt-5 w-full rounded-md bg-turquoise px-5 py-3 font-extrabold text-white disabled:cursor-not-allowed disabled:bg-muted">
+          {isSubmitting ? "Enregistrement..." : "Confirmer ma commande"}
+        </button>
       </aside>
     </form>
   );
