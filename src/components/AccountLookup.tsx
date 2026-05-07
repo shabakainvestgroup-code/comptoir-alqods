@@ -20,8 +20,21 @@ type Customer = {
 type Order = {
   id: string;
   order_number: string;
+  items?: {
+    productId?: string;
+    product_id?: string;
+    name: string;
+    quantity: number;
+    unitPrice?: number;
+    unit_price?: number;
+    totalPrice?: number;
+    total_price?: number;
+  }[];
+  subtotal?: number;
+  delivery_fee?: number;
   total: number;
   order_status: string;
+  payment_status?: string;
   payment_method: string;
   created_at: string;
 };
@@ -38,6 +51,7 @@ export function AccountLookup() {
   const [loading, setLoading] = useState(false);
   const [turnstileKey, setTurnstileKey] = useState(0);
   const [emailTurnstileKey, setEmailTurnstileKey] = useState(0);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
 
   function resetHumanCheck() {
@@ -57,6 +71,7 @@ export function AccountLookup() {
     if (customer) {
       setCustomer(null);
       setOrders([]);
+      setSelectedOrderId(null);
       setEmailCode("");
       setEmailMessage("");
       resetHumanCheck();
@@ -70,6 +85,7 @@ export function AccountLookup() {
 
     if (turnstileEnabled && !turnstileToken) {
       setMessage("Veuillez attendre la validation humaine.");
+      setSelectedOrderId(null);
       return;
     }
 
@@ -86,12 +102,14 @@ export function AccountLookup() {
     if (!response.ok) {
       setCustomer(null);
       setOrders([]);
+      setSelectedOrderId(null);
       setMessage(data.message || "Aucun compte trouvé.");
       return;
     }
 
     setCustomer(data.customer);
     setOrders(data.orders || []);
+    setSelectedOrderId(data.orders?.[0]?.id || null);
   }
 
   async function sendEmailCode() {
@@ -191,11 +209,49 @@ export function AccountLookup() {
               </div>
               <div className="divide-y divide-line">
                 {orders.map((order) => (
-                  <div key={order.id} className="grid gap-3 p-5 md:grid-cols-[140px_1fr_130px_130px]">
-                    <strong className="text-navy">{order.order_number}</strong>
-                    <span>{new Date(order.created_at).toLocaleDateString("fr-FR")}</span>
-                    <strong>{formatPrice(Number(order.total || 0))}</strong>
-                    <span className="font-bold text-turquoise">{order.order_status}</span>
+                  <div key={order.id} className="p-5">
+                    <div className="grid gap-3 md:grid-cols-[140px_1fr_130px_130px_120px] md:items-center">
+                      <strong className="text-navy">{order.order_number}</strong>
+                      <span>{new Date(order.created_at).toLocaleDateString("fr-FR")}</span>
+                      <strong>{formatPrice(Number(order.total || 0))}</strong>
+                      <span className="font-bold text-turquoise">{order.order_status}</span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedOrderId(selectedOrderId === order.id ? null : order.id)}
+                        className="rounded-md border border-navy px-3 py-2 text-sm font-extrabold text-navy"
+                      >
+                        {selectedOrderId === order.id ? "Masquer" : "Détail"}
+                      </button>
+                    </div>
+                    {selectedOrderId === order.id && (
+                      <div className="mt-4 rounded-md border border-line bg-soft-bg p-4">
+                        <div className="grid gap-2 text-sm text-muted md:grid-cols-3">
+                          <p><strong className="text-navy">Paiement :</strong> {order.payment_method === "cash_on_delivery" ? "À la livraison" : "Carte bancaire"}</p>
+                          <p><strong className="text-navy">Statut paiement :</strong> {order.payment_status || "pending_on_delivery"}</p>
+                          <p><strong className="text-navy">Livraison :</strong> {formatPrice(Number(order.delivery_fee || 0))}</p>
+                        </div>
+                        <div className="mt-4 overflow-hidden rounded-md border border-line bg-white">
+                          {(order.items || []).map((item) => {
+                            const unitPrice = Number(item.unitPrice ?? item.unit_price ?? 0);
+                            const totalPrice = Number(item.totalPrice ?? item.total_price ?? unitPrice * Number(item.quantity || 0));
+                            return (
+                              <div key={`${order.id}-${item.productId || item.product_id || item.name}`} className="grid gap-2 border-b border-line p-3 text-sm last:border-b-0 md:grid-cols-[1fr_90px_120px_120px]">
+                                <span className="font-bold text-navy">{item.name}</span>
+                                <span>Qté : {item.quantity}</span>
+                                <span>{formatPrice(unitPrice)}</span>
+                                <strong>{formatPrice(totalPrice)}</strong>
+                              </div>
+                            );
+                          })}
+                          {(order.items || []).length === 0 && <p className="p-3 text-sm text-muted">Détail produit indisponible pour cette commande.</p>}
+                        </div>
+                        <div className="mt-4 grid gap-2 text-sm md:ml-auto md:max-w-xs">
+                          <p className="flex justify-between"><span>Sous-total</span><strong>{formatPrice(Number(order.subtotal || 0))}</strong></p>
+                          <p className="flex justify-between"><span>Livraison</span><strong>{formatPrice(Number(order.delivery_fee || 0))}</strong></p>
+                          <p className="flex justify-between text-lg font-black text-navy"><span>Total</span><span>{formatPrice(Number(order.total || 0))}</span></p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
                 {orders.length === 0 && <p className="p-5 text-muted">Aucune commande trouvée.</p>}
