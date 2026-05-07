@@ -53,6 +53,17 @@ create table if not exists customers (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists verification_codes (
+  id uuid primary key default gen_random_uuid(),
+  customer_id uuid references customers(id) on delete cascade,
+  channel text not null,
+  destination text not null,
+  code text not null,
+  expires_at timestamptz not null,
+  used_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
 create index if not exists orders_order_status_idx on orders(order_status);
 create index if not exists orders_created_at_idx on orders(created_at desc);
 create index if not exists products_category_idx on products(category);
@@ -60,3 +71,4 @@ create index if not exists products_stock_idx on products(stock);
 create unique index if not exists customers_phone_unique_idx on customers(phone);
 create index if not exists customers_cni_idx on customers(cni);
 create index if not exists customers_email_idx on customers(email);
+create index if not exists verification_codes_lookup_idx on verification_codes(customer_id, channel, destination);

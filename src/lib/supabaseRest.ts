@@ -95,4 +95,14 @@ export async function updateRow<T>(table: string, id: string, values: unknown): 
   return rows[0] as T;
 }
 
+export async function updateRows<T>(table: string, filters: Record<string, string | number | boolean>, values: unknown): Promise<T[]> {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => params.set(key, `eq.${value}`));
+
+  return supabaseFetch(`${table}?${params.toString()}`, {
+    method: "PATCH",
+    body: JSON.stringify(values)
+  });
+}
+
 export { isSupabaseConfigured };

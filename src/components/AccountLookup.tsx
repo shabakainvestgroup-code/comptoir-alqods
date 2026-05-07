@@ -5,6 +5,7 @@ import { TurnstileWidget } from "@/components/TurnstileWidget";
 import { formatPrice } from "@/lib/formatPrice";
 
 type Customer = {
+  id?: string;
   full_name: string;
   phone: string;
   email?: string;
@@ -31,11 +32,13 @@ export function AccountLookup() {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [message, setMessage] = useState("");
+  const [emailCode, setEmailCode] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
 
-  async function lookup(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function lookup(event?: React.FormEvent<HTMLFormElement>) {
+    event?.preventDefault();
     setMessage("");
 
     if (turnstileEnabled && !turnstileToken) {
@@ -61,6 +64,29 @@ export function AccountLookup() {
 
     setCustomer(data.customer);
     setOrders(data.orders || []);
+  }
+
+  async function sendEmailCode() {
+    setEmailMessage("");
+    const response = await fetch("/api/account/email/send-code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ identifier, turnstileToken })
+    });
+    const data = await response.json();
+    setEmailMessage(data.message || (response.ok ? "Code envoyé." : "Envoi impossible."));
+  }
+
+  async function verifyEmailCode() {
+    setEmailMessage("");
+    const response = await fetch("/api/account/email/verify-code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ identifier, code: emailCode, turnstileToken })
+    });
+    const data = await response.json();
+    setEmailMessage(data.message || (response.ok ? "Email vérifié." : "Code invalide."));
+    if (response.ok) await lookup();
   }
 
   return (
@@ -95,6 +121,18 @@ export function AccountLookup() {
                 <p><strong className="text-navy">Téléphone vérifié :</strong> {customer.phone_verified ? "Oui" : "Non"}</p>
                 <p><strong className="text-navy">Email vérifié :</strong> {customer.email_verified ? "Oui" : "Non"}</p>
               </div>
+              {customer.email && !customer.email_verified && (
+                <div className="mt-5 rounded-md border border-line bg-soft-bg p-4">
+                  <h3 className="font-extrabold text-navy">Vérifier mon email</h3>
+                  <p className="mt-1 text-sm text-muted">Recevez un code à 6 chiffres sur {customer.email}. Le code expire après 10 minutes.</p>
+                  <div className="mt-4 grid gap-3 md:grid-cols-[1fr_160px_150px]">
+                    <input value={emailCode} onChange={(event) => setEmailCode(event.target.value)} placeholder="Code reçu" className="rounded-md border border-line px-4 py-3 outline-turquoise" />
+                    <button type="button" onClick={sendEmailCode} className="rounded-md border border-navy px-4 py-3 font-extrabold text-navy">Envoyer code</button>
+                    <button type="button" onClick={verifyEmailCode} className="rounded-md bg-turquoise px-4 py-3 font-extrabold text-white">Valider</button>
+                  </div>
+                  {emailMessage && <p className="mt-3 text-sm font-bold text-navy">{emailMessage}</p>}
+                </div>
+              )}
             </section>
             <section className="overflow-hidden rounded-md border border-line bg-white shadow-sm">
               <div className="border-b border-line p-5">
