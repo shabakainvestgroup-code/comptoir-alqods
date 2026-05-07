@@ -50,6 +50,20 @@ export function AccountLookup() {
     setEmailTurnstileKey((value) => value + 1);
   }
 
+  function handleIdentifierChange(value: string) {
+    setIdentifier(value);
+    setMessage("");
+
+    if (customer) {
+      setCustomer(null);
+      setOrders([]);
+      setEmailCode("");
+      setEmailMessage("");
+      resetHumanCheck();
+      resetEmailHumanCheck();
+    }
+  }
+
   async function lookup(event?: React.FormEvent<HTMLFormElement>) {
     event?.preventDefault();
     setMessage("");
@@ -123,15 +137,23 @@ export function AccountLookup() {
         <p className="mt-2 text-muted">Entrez votre téléphone, votre CNI ou votre email pour retrouver vos commandes.</p>
         <label className="mt-6 grid gap-2 text-sm font-bold text-navy">
           Téléphone, CNI ou email
-          <input value={identifier} onChange={(event) => setIdentifier(event.target.value)} required className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" />
+          <input value={identifier} onChange={(event) => handleIdentifierChange(event.target.value)} required className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" />
         </label>
-        <div className="mt-4">
-          <TurnstileWidget key={turnstileKey} action="account_lookup" onVerify={setTurnstileToken} />
-        </div>
+        {!customer && (
+          <div className="mt-4">
+            <TurnstileWidget key={turnstileKey} action="account_lookup" onVerify={setTurnstileToken} />
+          </div>
+        )}
         {message && <p className="mt-4 rounded-md bg-alert/10 p-3 text-sm font-bold text-alert">{message}</p>}
-        <button disabled={loading || (turnstileEnabled && !turnstileToken)} className="mt-5 w-full rounded-md bg-turquoise px-5 py-3 font-extrabold text-white disabled:bg-muted">
-          {loading ? "Recherche..." : "Voir mon compte"}
-        </button>
+        {!customer ? (
+          <button disabled={loading || (turnstileEnabled && !turnstileToken)} className="mt-5 w-full rounded-md bg-turquoise px-5 py-3 font-extrabold text-white disabled:bg-muted">
+            {loading ? "Recherche..." : "Voir mon compte"}
+          </button>
+        ) : (
+          <button type="button" onClick={() => handleIdentifierChange("")} className="mt-5 w-full rounded-md border border-navy px-5 py-3 font-extrabold text-navy">
+            Nouvelle recherche
+          </button>
+        )}
       </form>
 
       <div className="space-y-6">
@@ -156,8 +178,8 @@ export function AccountLookup() {
                   </div>
                   <div className="mt-4 grid gap-3 md:grid-cols-[1fr_160px_150px]">
                     <input value={emailCode} onChange={(event) => setEmailCode(event.target.value)} placeholder="Code reçu" className="rounded-md border border-line px-4 py-3 outline-turquoise" />
-                    <button type="button" onClick={sendEmailCode} className="rounded-md border border-navy px-4 py-3 font-extrabold text-navy">Envoyer code</button>
-                    <button type="button" onClick={verifyEmailCode} className="rounded-md bg-turquoise px-4 py-3 font-extrabold text-white">Valider</button>
+                    <button type="button" onClick={sendEmailCode} disabled={turnstileEnabled && !emailTurnstileToken} className="rounded-md border border-navy px-4 py-3 font-extrabold text-navy disabled:border-muted disabled:text-muted">Envoyer code</button>
+                    <button type="button" onClick={verifyEmailCode} disabled={turnstileEnabled && !emailTurnstileToken} className="rounded-md bg-turquoise px-4 py-3 font-extrabold text-white disabled:bg-muted">Valider</button>
                   </div>
                   {emailMessage && <p className="mt-3 text-sm font-bold text-navy">{emailMessage}</p>}
                 </div>
