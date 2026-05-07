@@ -99,6 +99,8 @@ export function AdminDashboard() {
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
   const [productMessage, setProductMessage] = useState("");
+  const [uploadMessage, setUploadMessage] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
 
   const stats = useMemo(() => {
     const pending = orders.filter((order) => orderStatus(order) !== "delivered" && orderStatus(order) !== "cancelled").length;
@@ -184,6 +186,50 @@ export function AdminDashboard() {
     if (response.ok) {
       setEditingProduct(null);
       await loadAdminData();
+    }
+  }
+
+  async function uploadProductImage(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadMessage("");
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setUploadMessage("Format refusé. Utilisez une image JPG, PNG ou WebP.");
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setUploadMessage("Image trop lourde. La taille maximale est de 2 Mo.");
+      event.target.value = "";
+      return;
+    }
+
+    const form = new FormData();
+    form.append("file", file);
+    setIsUploading(true);
+
+    try {
+      const response = await fetch("/api/admin/uploads/product-image", {
+        method: "POST",
+        body: form
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setUploadMessage(data.message || "Upload impossible.");
+        return;
+      }
+
+      setEditingProduct((current) => ({ ...(current || {}), image: data.url }));
+      setUploadMessage("Image ajoutée. Pensez à enregistrer le produit.");
+    } catch {
+      setUploadMessage("Upload impossible pour le moment.");
+    } finally {
+      setIsUploading(false);
+      event.target.value = "";
     }
   }
 
@@ -325,7 +371,20 @@ export function AdminDashboard() {
                 <label className="grid gap-2 text-sm font-bold text-navy">Badge<select value={editingProduct.badge || ""} onChange={(event) => setEditingProduct({ ...editingProduct, badge: event.target.value ? event.target.value as ProductBadge : undefined })} className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise">{badges.map((badge) => <option key={badge} value={badge}>{badge || "Aucun"}</option>)}</select></label>
                 <label className="grid gap-2 text-sm font-bold text-navy">Marque<input value={editingProduct.brand || ""} onChange={(event) => setEditingProduct({ ...editingProduct, brand: event.target.value })} className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" /></label>
                 <label className="grid gap-2 text-sm font-bold text-navy">Référence<input value={editingProduct.reference || ""} onChange={(event) => setEditingProduct({ ...editingProduct, reference: event.target.value })} className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" /></label>
-                <label className="grid gap-2 text-sm font-bold text-navy md:col-span-2">Image URL<input value={editingProduct.image || ""} onChange={(event) => setEditingProduct({ ...editingProduct, image: event.target.value })} className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" /></label>
+                <div className="grid gap-3 text-sm font-bold text-navy md:col-span-2">
+                  <span>Photo du produit</span>
+                  <div className="grid gap-4 rounded-md border border-line bg-soft-bg p-4 md:grid-cols-[160px_1fr]">
+                    <div className="h-36 rounded-md border border-line bg-white bg-cover bg-center" style={{ backgroundImage: `url(${editingProduct.image || ""})` }} />
+                    <div>
+                      <label className="inline-flex cursor-pointer items-center justify-center rounded-md bg-navy px-5 py-3 font-extrabold text-white">
+                        {isUploading ? "Upload en cours..." : "Choisir une photo"}
+                        <input type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadProductImage} disabled={isUploading} className="sr-only" />
+                      </label>
+                      <p className="mt-3 text-sm font-normal text-muted">Formats acceptés : JPG, PNG ou WebP. Taille maximale : 2 Mo. Format conseillé : image carrée ou paysage, environ 1200 px de large.</p>
+                      {uploadMessage && <p className="mt-3 rounded-md bg-white p-3 text-sm font-bold text-navy">{uploadMessage}</p>}
+                    </div>
+                  </div>
+                </div>
                 <label className="grid gap-2 text-sm font-bold text-navy md:col-span-2">Description<textarea rows={4} value={editingProduct.description || ""} onChange={(event) => setEditingProduct({ ...editingProduct, description: event.target.value })} className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" /></label>
                 <label className="flex items-center gap-2 text-sm font-bold text-navy"><input type="checkbox" checked={editingProduct.isAvailable ?? true} onChange={(event) => setEditingProduct({ ...editingProduct, isAvailable: event.target.checked })} className="h-4 w-4 accent-turquoise" /> Produit actif</label>
                 <label className="flex items-center gap-2 text-sm font-bold text-navy"><input type="checkbox" checked={editingProduct.deliveryAvailable ?? true} onChange={(event) => setEditingProduct({ ...editingProduct, deliveryAvailable: event.target.checked })} className="h-4 w-4 accent-turquoise" /> Livraison disponible</label>

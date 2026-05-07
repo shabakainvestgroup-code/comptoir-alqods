@@ -6,6 +6,7 @@ export const env = {
   adminPassword: process.env.ADMIN_PASSWORD || "change-me",
   supabaseUrl: process.env.SUPABASE_URL,
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  supabaseStorageBucket: process.env.SUPABASE_STORAGE_BUCKET || "product-images",
   paymentProvider: process.env.PAYMENT_PROVIDER || "demo",
   cmiMerchantId: process.env.CMI_MERCHANT_ID,
   cmiStoreKey: process.env.CMI_STORE_KEY,
