@@ -5,6 +5,7 @@ import { insertRow, isSupabaseConfigured } from "@/lib/supabaseRest";
 import { sendOrderEmails } from "@/lib/email";
 import type { Order } from "@/types/order";
 import { verifyTurnstileToken } from "@/lib/turnstile";
+import { upsertCustomerFromOrder } from "@/lib/customers";
 
 export async function POST(request: Request) {
   try {
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
       });
     }
 
+    await upsertCustomerFromOrder(order);
     await sendOrderEmails(order);
 
     return NextResponse.json({

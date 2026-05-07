@@ -7,6 +7,7 @@ export type Order = {
     fullName: string;
     phone: string;
     email: string;
+    cni?: string;
     address: string;
     city: string;
     district?: string;

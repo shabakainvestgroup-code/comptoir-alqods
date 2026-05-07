@@ -40,6 +40,7 @@ export function CheckoutForm() {
         fullName: String(form.get("fullName") || ""),
         phone: String(form.get("phone") || ""),
         email: String(form.get("email") || ""),
+        cni: String(form.get("cni") || ""),
         address: String(form.get("address") || ""),
         city,
         district: String(form.get("district") || ""),
@@ -84,6 +85,7 @@ export function CheckoutForm() {
             <label className="grid gap-2 text-sm font-bold text-navy">Nom complet<input required name="fullName" className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" /></label>
             <label className="grid gap-2 text-sm font-bold text-navy">Téléphone<input required name="phone" className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" /></label>
             <label className="grid gap-2 text-sm font-bold text-navy">Email<input required type="email" name="email" className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" /></label>
+            <label className="grid gap-2 text-sm font-bold text-navy">CNI<input name="cni" placeholder="Numéro de carte nationale" className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" /></label>
             <label className="grid gap-2 text-sm font-bold text-navy">Ville<input required value={city} onChange={(event) => setCity(event.target.value)} className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" /></label>
             <label className="grid gap-2 text-sm font-bold text-navy md:col-span-2">Adresse de livraison<input required name="address" className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" /></label>
             <label className="grid gap-2 text-sm font-bold text-navy">Quartier<input name="district" className="rounded-md border border-line px-4 py-3 font-normal outline-turquoise" /></label>
