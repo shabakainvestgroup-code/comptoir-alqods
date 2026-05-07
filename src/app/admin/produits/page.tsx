@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
-import { AdminHome } from "@/components/AdminHome";
 import { AdminLoginGate } from "@/components/AdminLoginGate";
+import { AdminProducts } from "@/components/AdminProducts";
 import { AdminShell } from "@/components/AdminShell";
 
 export const metadata: Metadata = {
-  title: "Back-office | Comptoir AlQods",
-  description: "Tableau de bord du back-office Comptoir AlQods."
+  title: "Produits | Comptoir AlQods",
+  description: "Gestion du catalogue produits Comptoir AlQods."
 };
 
-export default function AdminPage() {
+export default function AdminProductsPage() {
   return (
     <AdminLoginGate>
       <AdminShell>
-        <AdminHome />
+        <AdminProducts />
       </AdminShell>
     </AdminLoginGate>
   );

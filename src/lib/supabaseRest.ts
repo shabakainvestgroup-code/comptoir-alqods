@@ -4,6 +4,9 @@ type QueryOptions = {
   select?: string;
   order?: string;
   limit?: number;
+  offset?: number;
+  filters?: Record<string, string | number | boolean>;
+  or?: string;
 };
 
 function isSupabaseConfigured() {
@@ -41,7 +44,21 @@ export async function listRows<T>(table: string, options: QueryOptions = {}): Pr
   params.set("select", options.select || "*");
   if (options.order) params.set("order", options.order);
   if (options.limit) params.set("limit", String(options.limit));
+  if (options.offset) params.set("offset", String(options.offset));
+  if (options.or) params.set("or", options.or);
+  Object.entries(options.filters || {}).forEach(([key, value]) => {
+    params.set(key, typeof value === "string" && value.includes(".") ? value : `eq.${value}`);
+  });
   return supabaseFetch(`${table}?${params.toString()}`);
+}
+
+export async function getRowById<T>(table: string, id: string): Promise<T | null> {
+  const rows = await listRows<T>(table, {
+    select: "*",
+    filters: { id }
+  });
+
+  return rows[0] || null;
 }
 
 export async function insertRow<T>(table: string, row: unknown): Promise<T> {
