@@ -1,0 +1,102 @@
+import type { Category } from "@/types/category";
+
+export const categories: Category[] = [
+  {
+    slug: "electricite",
+    name: "Électricité",
+    description: "Retrouvez tout le matériel électrique pour vos installations résidentielles, tertiaires et industrielles : éclairage, câblage, protection, appareillage et outils.",
+    heroImage: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=1600&q=80",
+    cardImage: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=900&q=80",
+    icon: "Zap",
+    subcategories: ["Éclairage", "Câbles & fils", "Appareillage", "Protection & tableaux", "Gaines & accessoires", "Outillage électrique"],
+    brands: ["Schneider Electric", "Legrand", "Philips", "Osram", "Nexans", "Hager", "Eaton", "Siemens"],
+    adviceTitle: "Nos conseils pour vos installations électriques",
+    adviceText: "Bien choisir vos câbles, protéger vos circuits et opter pour un éclairage LED performant vous garantit sécurité, économies et durabilité.",
+    adviceButton: "Voir tous nos conseils",
+    promoTitle: "Éclairez mieux, économisez plus !",
+    promoText: "Jusqu’à -20% sur une sélection d’éclairages LED",
+    promoButton: "Découvrir l’offre"
+  },
+  {
+    slug: "sanitaires",
+    name: "Sanitaires",
+    description: "Tout pour équiper et aménager votre salle de bain avec des produits fiables, durables et au meilleur prix.",
+    heroImage: "https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=1600&q=80",
+    cardImage: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=900&q=80",
+    icon: "Bath",
+    subcategories: ["WC & Packs WC", "Lavabos & Vasques", "Robinetterie", "Douche & Colonnes", "Baignoires", "Bidets", "Accessoires de salle de bain", "Miroirs & éclairages", "Réservoirs & mécanismes"],
+    brands: ["Grohe", "Roca", "Ideal Standard", "VitrA", "Geberit"],
+    adviceTitle: "Aménagez votre salle de bain",
+    adviceText: "Des idées et conseils pour créer un espace à la fois pratique, élégant et confortable.",
+    adviceButton: "Voir l’inspiration",
+    promoTitle: "Offre spéciale Sanitaires",
+    promoText: "Jusqu’à -20% sur une sélection de produits",
+    promoButton: "Découvrir l’offre"
+  },
+  {
+    slug: "plomberie",
+    name: "Plomberie",
+    description: "Tout pour vos installations d’eau et de chauffage. Des produits fiables, durables et conformes aux normes.",
+    heroImage: "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?auto=format&fit=crop&w=1600&q=80",
+    cardImage: "https://images.unsplash.com/photo-1581092160607-ee22731c6f6d?auto=format&fit=crop&w=900&q=80",
+    icon: "Wrench",
+    subcategories: ["Tubes & Tuyaux", "Raccords & Accessoires", "Robinetterie", "Évacuation", "Chauffage & chauffe-eau", "Traitement de l’eau"],
+    brands: ["Nicoll", "Comap", "Geberit", "Wavin"],
+    adviceTitle: "Les indispensables pour vos installations de plomberie",
+    adviceText: "Robustes, étanches et durables : une sélection de produits professionnels pour tous vos projets.",
+    adviceButton: "Voir le guide plomberie",
+    promoTitle: "Offre du moment",
+    promoText: "-15% sur une sélection de raccords laiton",
+    promoButton: "J’en profite"
+  },
+  {
+    slug: "outillage",
+    name: "Outillage",
+    description: "Des outils performants pour des résultats professionnels. Découvrez notre sélection d’outils électroportatifs, d’outils à main, d’accessoires et d’équipements adaptés aux exigences des professionnels du bâtiment.",
+    heroImage: "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=1600&q=80",
+    cardImage: "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?auto=format&fit=crop&w=900&q=80",
+    icon: "Drill",
+    subcategories: ["Électroportatif", "Outils à main", "Rangement & organisation", "Accessoires & consommables", "Machines d’atelier", "Mesure & traçage", "Équipement de chantier", "Sécurité & protection"],
+    brands: ["Bosch", "Makita", "DeWalt", "Stanley", "Total"],
+    adviceTitle: "L’outillage pour tous vos chantiers",
+    adviceText: "Que vous soyez professionnel ou bricoleur, retrouvez des outils fiables, puissants et durables pour travailler en toute confiance.",
+    adviceButton: "Découvrir la sélection complète",
+    promoTitle: "Promo outillage",
+    promoText: "Jusqu’à -20% sur une sélection d’outillage",
+    promoButton: "Voir les offres"
+  },
+  {
+    slug: "quincaillerie",
+    name: "Quincaillerie",
+    description: "Tout le nécessaire pour fixer, assembler et sécuriser vos projets. Vis, boulons, charnières, serrures, poignées et bien plus encore.",
+    heroImage: "https://images.unsplash.com/photo-1605170439002-90845e8c0137?auto=format&fit=crop&w=1600&q=80",
+    cardImage: "https://images.unsplash.com/photo-1604695573706-53170668f6a6?auto=format&fit=crop&w=900&q=80",
+    icon: "Nut",
+    subcategories: ["Visserie", "Boulonnerie", "Écrous & rondelles", "Charnières", "Serrurerie", "Poignées & ferrures", "Fixations & chevilles", "Accessoires"],
+    brands: ["Sélection professionnelle", "Gamme chantier", "Qualité inox", "Usage pro"],
+    adviceTitle: "Toutes les fixations pour vos travaux",
+    adviceText: "Notre quincaillerie regroupe des produits fiables et durables pour professionnels et particuliers.",
+    adviceButton: "Voir le guide complet",
+    promoTitle: "Offre Pro : Profitez de remises quantité !",
+    promoText: "Plus vous achetez, plus vous économisez.",
+    promoButton: "Demander un devis"
+  },
+  {
+    slug: "peintures",
+    name: "Peintures",
+    description: "Découvrez notre large gamme de peintures intérieures et extérieures pour sublimer, protéger et personnaliser tous vos espaces.",
+    heroImage: "https://images.unsplash.com/photo-1562259949-e8e7689d7828?auto=format&fit=crop&w=1600&q=80",
+    cardImage: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&w=900&q=80",
+    icon: "PaintRoller",
+    subcategories: ["Peintures murales", "Peintures extérieures", "Sous-couches & apprêts", "Enduits & finitions", "Accessoires peinture", "Décoration & effets"],
+    brands: ["Acrylique", "Glycéro", "Alkyde", "Spéciale", "Intérieur", "Extérieur"],
+    adviceTitle: "Couleurs & finitions pour tous vos projets",
+    adviceText: "Des teintes tendances, des finitions parfaites pour des espaces qui vous ressemblent.",
+    adviceButton: "Découvrir l’inspiration",
+    promoTitle: "Offre spéciale",
+    promoText: "-15% sur une sélection de peintures intérieures",
+    promoButton: "J’en profite"
+  }
+];
+
+export const categorySlugs = categories.map((category) => category.slug);
