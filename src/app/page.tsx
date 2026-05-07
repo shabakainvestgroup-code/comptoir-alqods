@@ -1,14 +1,18 @@
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { categories } from "@/data/categories";
-import { featuredProducts } from "@/data/products";
+import { getFeaturedProducts } from "@/lib/productRepository";
 import { CategoryCard } from "@/components/CategoryCard";
 import { ProductGrid } from "@/components/ProductGrid";
 import { HeroBanner } from "@/components/HeroBanner";
 import { PromoBanner } from "@/components/PromoBanner";
 import { BenefitStrip } from "@/components/BenefitStrip";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const featuredProducts = await getFeaturedProducts();
+
   return (
     <>
       <HeroBanner />

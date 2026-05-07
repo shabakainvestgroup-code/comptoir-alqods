@@ -22,7 +22,7 @@ export function ProductCard({ product }: { product: Product }) {
           {product.oldPrice && <span className="text-sm text-muted line-through">{product.oldPrice.toLocaleString("fr-MA")} DH</span>}
         </div>
         <p className="mt-2 text-sm font-semibold text-stock">En stock</p>
-        <button onClick={() => cart.add(product.id)} className="mt-auto inline-flex items-center justify-center gap-2 rounded-md bg-turquoise px-4 py-3 font-bold text-white transition hover:bg-turquoise-light">
+        <button onClick={() => cart.add(product)} className="mt-auto inline-flex items-center justify-center gap-2 rounded-md bg-turquoise px-4 py-3 font-bold text-white transition hover:bg-turquoise-light">
           <ShoppingCart size={18} /> Ajouter au panier
         </button>
       </div>

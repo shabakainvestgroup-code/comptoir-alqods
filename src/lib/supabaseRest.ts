@@ -53,6 +53,19 @@ export async function insertRow<T>(table: string, row: unknown): Promise<T> {
   return rows[0] as T;
 }
 
+export async function upsertRows<T>(table: string, rowsToUpsert: unknown[], onConflict = "id"): Promise<T[]> {
+  const params = new URLSearchParams();
+  params.set("on_conflict", onConflict);
+
+  return supabaseFetch(`${table}?${params.toString()}`, {
+    method: "POST",
+    headers: {
+      Prefer: "resolution=merge-duplicates,return=representation"
+    },
+    body: JSON.stringify(rowsToUpsert)
+  });
+}
+
 export async function updateRow<T>(table: string, id: string, values: unknown): Promise<T> {
   const params = new URLSearchParams();
   params.set("id", `eq.${id}`);

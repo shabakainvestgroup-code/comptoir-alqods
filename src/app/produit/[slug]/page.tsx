@@ -2,25 +2,28 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { products } from "@/data/products";
+import { getProductBySlug, getProductsByCategory } from "@/lib/productRepository";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { ProductGrid } from "@/components/ProductGrid";
 import { ProductActions } from "@/components/ProductActions";
 import { BenefitStrip } from "@/components/BenefitStrip";
 
+export const dynamic = "force-dynamic";
+
 export function generateStaticParams() {
   return products.map((product) => ({ slug: product.slug }));
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  const product = products.find((item) => item.slug === params.slug);
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const product = await getProductBySlug(params.slug);
   if (!product) return {};
   return { title: `${product.name} | Comptoir AlQods`, description: product.description };
 }
 
-export default function ProductPage({ params }: { params: { slug: string } }) {
-  const product = products.find((item) => item.slug === params.slug);
+export default async function ProductPage({ params }: { params: { slug: string } }) {
+  const product = await getProductBySlug(params.slug);
   if (!product) notFound();
-  const similar = products.filter((item) => item.category === product.category && item.id !== product.id).slice(0, 4);
+  const similar = (await getProductsByCategory(product.category)).filter((item) => item.id !== product.id).slice(0, 4);
 
   return (
     <>
@@ -39,13 +42,13 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
               {product.oldPrice && <span className="text-lg text-muted line-through">{product.oldPrice.toLocaleString("fr-MA")} DH</span>}
             </div>
             <div className="mt-5 grid gap-2 rounded-md bg-soft-bg p-4 text-sm">
-              <p><strong>Disponibilité :</strong> <span className="text-stock">En stock</span></p>
+              <p><strong>Disponibilité :</strong> <span className={product.isAvailable ? "text-stock" : "text-alert"}>{product.isAvailable ? "En stock" : "Indisponible"}</span></p>
               <p><strong>Marque :</strong> {product.brand || "Sélection Comptoir AlQods"}</p>
               <p><strong>Référence :</strong> {product.reference}</p>
               <p><strong>Livraison :</strong> Marrakech et partout au Maroc</p>
             </div>
             <p className="mt-5 text-muted">{product.description}</p>
-            <ProductActions productId={product.id} />
+            <ProductActions product={product} />
             <Link href="/contact" className="mt-4 inline-block font-bold text-turquoise">Demander conseil</Link>
             <div className="mt-8">
               <h2 className="text-xl font-extrabold text-navy">Caractéristiques techniques</h2>

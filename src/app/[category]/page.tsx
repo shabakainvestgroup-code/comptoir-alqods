@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { categories, categorySlugs } from "@/data/categories";
-import { products } from "@/data/products";
+import { getProductsByCategory } from "@/lib/productRepository";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { FilterSidebar } from "@/components/FilterSidebar";
 import { ProductGrid } from "@/components/ProductGrid";
 import { AdviceBlock } from "@/components/AdviceBlock";
 import { PromoBanner } from "@/components/PromoBanner";
 import { BenefitStrip } from "@/components/BenefitStrip";
+
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return categorySlugs.map((category) => ({ category }));
@@ -22,10 +24,10 @@ export function generateMetadata({ params }: { params: { category: string } }): 
   };
 }
 
-export default function CategoryPage({ params }: { params: { category: string } }) {
+export default async function CategoryPage({ params }: { params: { category: string } }) {
   const category = categories.find((item) => item.slug === params.category);
   if (!category) notFound();
-  const categoryProducts = products.filter((product) => product.category === category.name);
+  const categoryProducts = await getProductsByCategory(category.name);
 
   return (
     <>

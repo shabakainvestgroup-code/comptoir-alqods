@@ -1,10 +1,12 @@
 "use client";
 
 import { products } from "@/data/products";
+import type { Product } from "@/types/product";
 
 export type CartLine = {
   productId: string;
   quantity: number;
+  product?: Product;
 };
 
 const CART_KEY = "comptoir-alqods-cart";
@@ -23,11 +25,17 @@ export function writeCart(lines: CartLine[]) {
   window.dispatchEvent(new Event("cart:updated"));
 }
 
-export function addToCart(productId: string, quantity = 1) {
+export function addToCart(product: Product | string, quantity = 1) {
+  const productId = typeof product === "string" ? product : product.id;
+  const snapshot = typeof product === "string" ? undefined : product;
   const lines = readCart();
   const existing = lines.find((line) => line.productId === productId);
-  if (existing) existing.quantity += quantity;
-  else lines.push({ productId, quantity });
+  if (existing) {
+    existing.quantity += quantity;
+    if (snapshot) existing.product = snapshot;
+  } else {
+    lines.push({ productId, quantity, product: snapshot });
+  }
   writeCart(lines);
 }
 
@@ -46,8 +54,8 @@ export function clearCart() {
 export function hydrateCart(lines: CartLine[]) {
   return lines
     .map((line) => {
-      const product = products.find((item) => item.id === line.productId);
+      const product = line.product || products.find((item) => item.id === line.productId);
       return product ? { ...line, product, lineTotal: line.quantity * product.price } : null;
     })
-    .filter(Boolean) as { productId: string; quantity: number; product: (typeof products)[number]; lineTotal: number }[];
+    .filter(Boolean) as { productId: string; quantity: number; product: Product; lineTotal: number }[];
 }

@@ -2,12 +2,13 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { CartLine, addToCart, clearCart, hydrateCart, readCart, removeFromCart, setCartQuantity } from "@/lib/cart";
+import type { Product } from "@/types/product";
 
 type CartContextValue = {
   lines: ReturnType<typeof hydrateCart>;
   count: number;
   subtotal: number;
-  add: (productId: string, quantity?: number) => void;
+  add: (product: Product | string, quantity?: number) => void;
   setQuantity: (productId: string, quantity: number) => void;
   remove: (productId: string) => void;
   clear: () => void;
