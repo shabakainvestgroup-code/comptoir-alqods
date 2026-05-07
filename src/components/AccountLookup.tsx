@@ -29,6 +29,7 @@ type Order = {
 export function AccountLookup() {
   const [identifier, setIdentifier] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [emailTurnstileToken, setEmailTurnstileToken] = useState("");
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [message, setMessage] = useState("");
@@ -36,11 +37,17 @@ export function AccountLookup() {
   const [emailMessage, setEmailMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [turnstileKey, setTurnstileKey] = useState(0);
+  const [emailTurnstileKey, setEmailTurnstileKey] = useState(0);
   const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
 
   function resetHumanCheck() {
     setTurnstileToken("");
     setTurnstileKey((value) => value + 1);
+  }
+
+  function resetEmailHumanCheck() {
+    setEmailTurnstileToken("");
+    setEmailTurnstileKey((value) => value + 1);
   }
 
   async function lookup(event?: React.FormEvent<HTMLFormElement>) {
@@ -75,7 +82,7 @@ export function AccountLookup() {
 
   async function sendEmailCode() {
     setEmailMessage("");
-    if (turnstileEnabled && !turnstileToken) {
+    if (turnstileEnabled && !emailTurnstileToken) {
       setEmailMessage("Veuillez attendre une nouvelle validation humaine.");
       return;
     }
@@ -83,16 +90,16 @@ export function AccountLookup() {
     const response = await fetch("/api/account/email/send-code", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ identifier, turnstileToken })
+      body: JSON.stringify({ identifier, turnstileToken: emailTurnstileToken })
     });
     const data = await response.json();
-    resetHumanCheck();
+    resetEmailHumanCheck();
     setEmailMessage(data.message || (response.ok ? "Code envoyé." : "Envoi impossible."));
   }
 
   async function verifyEmailCode() {
     setEmailMessage("");
-    if (turnstileEnabled && !turnstileToken) {
+    if (turnstileEnabled && !emailTurnstileToken) {
       setEmailMessage("Veuillez attendre une nouvelle validation humaine.");
       return;
     }
@@ -100,10 +107,10 @@ export function AccountLookup() {
     const response = await fetch("/api/account/email/verify-code", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ identifier, code: emailCode, turnstileToken })
+      body: JSON.stringify({ identifier, code: emailCode, turnstileToken: emailTurnstileToken })
     });
     const data = await response.json();
-    resetHumanCheck();
+    resetEmailHumanCheck();
     setEmailMessage(data.message || (response.ok ? "Email vérifié." : "Code invalide."));
     if (response.ok) await lookup();
   }
@@ -144,6 +151,9 @@ export function AccountLookup() {
                 <div className="mt-5 rounded-md border border-line bg-soft-bg p-4">
                   <h3 className="font-extrabold text-navy">Vérifier mon email</h3>
                   <p className="mt-1 text-sm text-muted">Recevez un code à 6 chiffres sur {customer.email}. Le code expire après 10 minutes.</p>
+                  <div className="mt-4">
+                    <TurnstileWidget key={emailTurnstileKey} action="account_email_verify" onVerify={setEmailTurnstileToken} />
+                  </div>
                   <div className="mt-4 grid gap-3 md:grid-cols-[1fr_160px_150px]">
                     <input value={emailCode} onChange={(event) => setEmailCode(event.target.value)} placeholder="Code reçu" className="rounded-md border border-line px-4 py-3 outline-turquoise" />
                     <button type="button" onClick={sendEmailCode} className="rounded-md border border-navy px-4 py-3 font-extrabold text-navy">Envoyer code</button>
