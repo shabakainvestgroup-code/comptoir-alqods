@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, Eye, X } from "lucide-react";
+import { Download, Eye, FileText, X } from "lucide-react";
 import { AdminPager } from "@/components/AdminPager";
 import { formatPrice } from "@/lib/formatPrice";
 
@@ -68,6 +68,10 @@ export function AdminOrders() {
     window.location.href = `/api/admin/orders?${params.toString()}`;
   }
 
+  function openDocument(orderId: string, type: "invoice" | "quote") {
+    window.open(`/api/admin/orders/${orderId}/document?type=${type}`, "_blank", "noopener,noreferrer");
+  }
+
   useEffect(() => {
     load();
   }, [page, status]);
@@ -118,6 +122,10 @@ export function AdminOrders() {
               <button onClick={() => setSelected(null)} className="grid h-10 w-10 place-items-center rounded-md border border-line"><X size={20} /></button>
             </div>
             <div className="flex-1 overflow-auto p-6">
+              <div className="mb-5 grid gap-3 sm:grid-cols-2">
+                <button onClick={() => openDocument(selected.id, "invoice")} className="inline-flex items-center justify-center gap-2 rounded-md bg-turquoise px-4 py-3 font-extrabold text-white"><FileText size={18} /> Facture PDF</button>
+                <button onClick={() => openDocument(selected.id, "quote")} className="inline-flex items-center justify-center gap-2 rounded-md border border-navy px-4 py-3 font-extrabold text-navy"><FileText size={18} /> Devis PDF</button>
+              </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="rounded-md border border-line p-4"><h3 className="font-extrabold text-navy">Client</h3><p>{nameOf(selected)}</p><p>{selected.customer.phone}</p><p>{selected.customer.email || "Email non renseigné"}</p></div>
                 <div className="rounded-md border border-line p-4"><h3 className="font-extrabold text-navy">Livraison</h3><p>{selected.customer.address || "Adresse non renseignée"}</p><p>{selected.customer.district || ""} {selected.customer.city}</p></div>
