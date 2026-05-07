@@ -46,10 +46,14 @@ export function AccountLookup() {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [message, setMessage] = useState("");
+  const [phoneCode, setPhoneCode] = useState("");
+  const [phoneMessage, setPhoneMessage] = useState("");
+  const [phoneTurnstileToken, setPhoneTurnstileToken] = useState("");
   const [emailCode, setEmailCode] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [turnstileKey, setTurnstileKey] = useState(0);
+  const [phoneTurnstileKey, setPhoneTurnstileKey] = useState(0);
   const [emailTurnstileKey, setEmailTurnstileKey] = useState(0);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
@@ -64,6 +68,11 @@ export function AccountLookup() {
     setEmailTurnstileKey((value) => value + 1);
   }
 
+  function resetPhoneHumanCheck() {
+    setPhoneTurnstileToken("");
+    setPhoneTurnstileKey((value) => value + 1);
+  }
+
   function handleIdentifierChange(value: string) {
     setIdentifier(value);
     setMessage("");
@@ -72,9 +81,12 @@ export function AccountLookup() {
       setCustomer(null);
       setOrders([]);
       setSelectedOrderId(null);
+      setPhoneCode("");
+      setPhoneMessage("");
       setEmailCode("");
       setEmailMessage("");
       resetHumanCheck();
+      resetPhoneHumanCheck();
       resetEmailHumanCheck();
     }
   }
@@ -144,7 +156,46 @@ export function AccountLookup() {
     const data = await response.json();
     resetEmailHumanCheck();
     setEmailMessage(data.message || (response.ok ? "Email vérifié." : "Code invalide."));
-    if (response.ok) await lookup();
+    if (response.ok) {
+      setCustomer((current) => current ? { ...current, email_verified: true } : current);
+    }
+  }
+
+  async function sendPhoneCode() {
+    setPhoneMessage("");
+    if (turnstileEnabled && !phoneTurnstileToken) {
+      setPhoneMessage("Veuillez attendre une nouvelle validation humaine.");
+      return;
+    }
+
+    const response = await fetch("/api/account/phone/send-code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ identifier, turnstileToken: phoneTurnstileToken })
+    });
+    const data = await response.json();
+    resetPhoneHumanCheck();
+    setPhoneMessage(data.message || (response.ok ? "Code envoyé par SMS." : "Envoi impossible."));
+  }
+
+  async function verifyPhoneCode() {
+    setPhoneMessage("");
+    if (turnstileEnabled && !phoneTurnstileToken) {
+      setPhoneMessage("Veuillez attendre une nouvelle validation humaine.");
+      return;
+    }
+
+    const response = await fetch("/api/account/phone/verify-code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ identifier, code: phoneCode, turnstileToken: phoneTurnstileToken })
+    });
+    const data = await response.json();
+    resetPhoneHumanCheck();
+    setPhoneMessage(data.message || (response.ok ? "Téléphone vérifié." : "Code invalide."));
+    if (response.ok) {
+      setCustomer((current) => current ? { ...current, phone_verified: true } : current);
+    }
   }
 
   return (
@@ -187,6 +238,21 @@ export function AccountLookup() {
                 <p><strong className="text-navy">Téléphone vérifié :</strong> {customer.phone_verified ? "Oui" : "Non"}</p>
                 <p><strong className="text-navy">Email vérifié :</strong> {customer.email_verified ? "Oui" : "Non"}</p>
               </div>
+              {customer.phone && !customer.phone_verified && (
+                <div className="mt-5 rounded-md border border-line bg-soft-bg p-4">
+                  <h3 className="font-extrabold text-navy">Vérifier mon téléphone</h3>
+                  <p className="mt-1 text-sm text-muted">Recevez un code à 6 chiffres par SMS sur {customer.phone}. Le code expire après 10 minutes.</p>
+                  <div className="mt-4">
+                    <TurnstileWidget key={phoneTurnstileKey} action="account_phone_verify" onVerify={setPhoneTurnstileToken} />
+                  </div>
+                  <div className="mt-4 grid gap-3 md:grid-cols-[1fr_160px_150px]">
+                    <input value={phoneCode} onChange={(event) => setPhoneCode(event.target.value)} placeholder="Code reçu" className="rounded-md border border-line px-4 py-3 outline-turquoise" />
+                    <button type="button" onClick={sendPhoneCode} disabled={turnstileEnabled && !phoneTurnstileToken} className="rounded-md border border-navy px-4 py-3 font-extrabold text-navy disabled:border-muted disabled:text-muted">Envoyer SMS</button>
+                    <button type="button" onClick={verifyPhoneCode} disabled={turnstileEnabled && !phoneTurnstileToken} className="rounded-md bg-turquoise px-4 py-3 font-extrabold text-white disabled:bg-muted">Valider</button>
+                  </div>
+                  {phoneMessage && <p className="mt-3 text-sm font-bold text-navy">{phoneMessage}</p>}
+                </div>
+              )}
               {customer.email && !customer.email_verified && (
                 <div className="mt-5 rounded-md border border-line bg-soft-bg p-4">
                   <h3 className="font-extrabold text-navy">Vérifier mon email</h3>

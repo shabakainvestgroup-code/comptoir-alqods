@@ -1,4 +1,5 @@
 import { sendEmail } from "@/lib/email";
+import { sendSms } from "@/lib/sms";
 import { insertRow, listRows, updateRow, updateRows } from "@/lib/supabaseRest";
 import type { Customer } from "@/lib/customers";
 
@@ -50,6 +51,30 @@ export async function sendEmailVerificationCode(customer: Customer) {
   return { ok: true, expiresAt };
 }
 
+export async function sendSmsVerificationCode(customer: Customer) {
+  if (!customer.id || !customer.phone) {
+    throw new Error("Customer phone is required");
+  }
+
+  const code = generateCode();
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+
+  await insertRow("verification_codes", {
+    customer_id: customer.id,
+    channel: "sms",
+    destination: customer.phone,
+    code,
+    expires_at: expiresAt
+  });
+
+  await sendSms({
+    to: customer.phone,
+    message: `Votre code Comptoir AlQods est ${code}. Il expire dans 10 minutes.`
+  });
+
+  return { ok: true, expiresAt };
+}
+
 export async function verifyEmailCode(customerId: string, code: string) {
   const rows = await listRows<VerificationCode>("verification_codes", {
     select: "*",
@@ -73,6 +98,35 @@ export async function verifyEmailCode(customerId: string, code: string) {
 
   await updateRows("customers", { id: customerId }, {
     email_verified: true,
+    updated_at: new Date().toISOString()
+  });
+
+  return { ok: true };
+}
+
+export async function verifySmsCode(customerId: string, code: string) {
+  const rows = await listRows<VerificationCode>("verification_codes", {
+    select: "*",
+    filters: {
+      customer_id: customerId,
+      channel: "sms",
+      code
+    },
+    order: "created_at.desc",
+    limit: 1
+  });
+
+  const verification = rows[0];
+  if (!verification || verification.used_at || new Date(verification.expires_at).getTime() < Date.now()) {
+    return { ok: false };
+  }
+
+  await updateRow("verification_codes", verification.id, {
+    used_at: new Date().toISOString()
+  });
+
+  await updateRows("customers", { id: customerId }, {
+    phone_verified: true,
     updated_at: new Date().toISOString()
   });
 
