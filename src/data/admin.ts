@@ -14,7 +14,7 @@ export const demoOrders: Order[] = [
     orderNumber: "CA-102451",
     customer: {
       fullName: "Youssef B.",
-      phone: "06 61 23 45 67",
+      phone: "+212 668 734 724",
       email: "client@example.com",
       address: "Quartier Gueliz",
       city: "Marrakech",

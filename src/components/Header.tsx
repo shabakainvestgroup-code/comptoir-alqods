@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { ChevronDown, FileText, MapPin, Menu, Phone, ShoppingCart, Truck, User, X } from "lucide-react";
 import { useState } from "react";
 import { categories } from "@/data/categories";
+import { store } from "@/data/store";
 import { BrandLogo } from "@/components/BrandLogo";
 import { SearchBar } from "@/components/SearchBar";
 import { CartDrawer } from "@/components/CartDrawer";
@@ -23,7 +24,7 @@ export function Header() {
         <div className="container-page flex flex-wrap items-center justify-between gap-2 py-2 text-xs">
           <div className="flex flex-wrap items-center gap-4">
             <span className="inline-flex items-center gap-2"><Truck size={14} /> Livraison partout au Maroc</span>
-            <span className="inline-flex items-center gap-2"><FileText size={14} /> Conseils d’experts & devis gratuits</span>
+            <span className="inline-flex items-center gap-2"><FileText size={14} /> Conseils d'experts & devis gratuits</span>
           </div>
           <div className="flex items-center gap-3">
             <span>Suivez-nous :</span>
@@ -41,8 +42,8 @@ export function Header() {
         <Link href="/" className="shrink-0"><BrandLogo compact /></Link>
         <div className="hidden flex-1 md:block"><SearchBar /></div>
         <div className="ml-auto hidden items-center gap-6 lg:flex">
-          <div className="flex items-center gap-2"><Phone className="text-turquoise" /><div><p className="text-xs text-muted">Appelez-nous</p><p className="font-extrabold text-navy">05 22 12 34 56</p></div></div>
-          <div className="flex items-center gap-2"><MapPin className="text-turquoise" /><div><p className="text-xs text-muted">Où nous trouver ?</p><p className="font-extrabold text-navy">Marrakech, Maroc</p></div></div>
+          <div className="flex items-center gap-2"><Phone className="text-turquoise" /><div><p className="text-xs text-muted">Appelez-nous</p><p className="font-extrabold text-navy">{store.phone}</p></div></div>
+          <div className="flex items-center gap-2"><MapPin className="text-turquoise" /><div><p className="text-xs text-muted">Où nous trouver ?</p><p className="font-extrabold text-navy">{store.city}, {store.country}</p></div></div>
         </div>
         <button className="grid h-11 w-11 place-items-center rounded-md border border-line md:hidden" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
           {menuOpen ? <X /> : <Menu />}

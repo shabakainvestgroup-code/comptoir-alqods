@@ -36,7 +36,7 @@ export function Footer() {
           <h3 className="mb-4 font-extrabold">Horaires</h3>
           <div className="space-y-2 text-sm text-white/75">
             <p>{store.hours.weekdays}</p>
-            <p>{store.hours.saturday}</p>
+            {store.hours.saturday && <p>{store.hours.saturday}</p>}
             <p>{store.hours.sunday}</p>
           </div>
         </div>

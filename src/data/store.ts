@@ -3,21 +3,21 @@ export const store = {
   legalName: "Comptoir AlQods",
   city: "Marrakech",
   country: "Maroc",
-  address: "Marrakech, Maroc",
-  phone: "05 22 12 34 56",
-  whatsapp: "06 61 23 45 67",
-  whatsappInternational: "212661234567",
+  address: "372 lot AL Massar, Rte de Safi, Marrakech 40000",
+  phone: "+212 524 356 173",
+  whatsapp: "+212 668 734 724",
+  whatsappInternational: "212668734724",
   email: "contact@comptoiralqods.ma",
   domain: "comptoiralqods.ma",
   hours: {
-    weekdays: "Lundi - Vendredi : 08h30 - 18h30",
-    saturday: "Samedi : 08h30 - 17h00",
+    weekdays: "Lundi - Samedi : 09h00 - 20h00",
+    saturday: "",
     sunday: "Dimanche : Fermé"
   },
   mapEmbedUrl:
-    "https://www.google.com/maps?q=Marrakech%2C%20Maroc&output=embed",
+    "https://www.google.com/maps?q=372%20lot%20AL%20Massar%2C%20Rte%20de%20Safi%2C%20Marrakech%2040000&output=embed",
   mapsSearchUrl:
-    "https://www.google.com/maps/search/?api=1&query=Marrakech%2C%20Maroc"
+    "https://www.google.com/maps/search/?api=1&query=372%20lot%20AL%20Massar%2C%20Rte%20de%20Safi%2C%20Marrakech%2040000"
 };
 
 export const legalPages = [
