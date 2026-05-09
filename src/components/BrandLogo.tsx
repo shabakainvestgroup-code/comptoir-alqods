@@ -9,7 +9,7 @@ export function BrandLogo({ compact = false }: { compact?: boolean }) {
         width={compact ? 300 : 260}
         height={compact ? 92 : 80}
         priority
-        className={`${compact ? "h-16 w-auto sm:h-20" : "h-20 w-auto"} object-contain`}
+        className={`${compact ? "h-14 w-auto sm:h-20" : "h-20 w-auto"} object-contain`}
       />
     </div>
   );
