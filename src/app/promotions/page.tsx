@@ -4,7 +4,10 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { BenefitStrip } from "@/components/BenefitStrip";
 import { ProductCard } from "@/components/ProductCard";
 import { getPromotions } from "@/lib/promotions";
-import { getProducts } from "@/lib/productRepository";
+import { getPromotionalProducts } from "@/lib/productRepository";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: "Promotions | Comptoir AlQods Marrakech",
@@ -13,7 +16,7 @@ export const metadata: Metadata = {
 
 export default async function PromotionsPage() {
   const promotions = await getPromotions({ activeOnly: true });
-  const stockPromotions = (await getProducts()).filter((product) => product.isAvailable && product.badge === "Promo");
+  const stockPromotions = await getPromotionalProducts();
   const campaignProducts = promotions.flatMap((promotion) => promotion.products || []);
   const promotedProducts = [...campaignProducts, ...stockPromotions].filter((product, index, all) => all.findIndex((item) => item.id === product.id) === index);
 
@@ -49,7 +52,7 @@ export default async function PromotionsPage() {
             ))}
           </div>
 
-          {promotions.length === 0 && (
+          {promotions.length === 0 && promotedProducts.length === 0 && (
             <div className="rounded-md border border-line bg-white p-8 text-muted shadow-sm">
               Aucune promotion active pour le moment. Revenez bientôt pour découvrir nos prochaines offres.
             </div>

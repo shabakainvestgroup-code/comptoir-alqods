@@ -122,6 +122,28 @@ export async function getProducts(): Promise<Product[]> {
   }
 }
 
+export async function getPromotionalProducts(): Promise<Product[]> {
+  if (!isSupabaseConfigured()) {
+    return localProducts.filter((product) => product.isAvailable && product.badge === "Promo");
+  }
+
+  try {
+    const rows = await listRows<ProductRow>("products", {
+      select: "*",
+      order: "name.asc",
+      filters: {
+        badge: "Promo",
+        is_available: true
+      },
+      limit: 500
+    });
+
+    return rows.map(rowToProduct);
+  } catch {
+    return localProducts.filter((product) => product.isAvailable && product.badge === "Promo");
+  }
+}
+
 export async function getFeaturedProducts() {
   return (await getProducts()).filter((product) => product.isAvailable).slice(0, 6);
 }
