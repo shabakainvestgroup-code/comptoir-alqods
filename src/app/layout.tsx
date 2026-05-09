@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FloatingWhatsAppButton } from "@/components/FloatingWhatsAppButton";
 import { CartProvider } from "@/components/CartProvider";
+import { PromotionPopup } from "@/components/PromotionPopup";
 
 export const metadata: Metadata = {
   title: "Comptoir AlQods | Matériel de bricolage et chantier à Marrakech",
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main>{children}</main>
           <Footer />
           <FloatingWhatsAppButton />
+          <PromotionPopup />
         </CartProvider>
       </body>
     </html>
