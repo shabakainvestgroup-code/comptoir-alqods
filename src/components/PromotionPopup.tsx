@@ -1,31 +1,47 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import type { Promotion } from "@/types/promotion";
 
-const SESSION_KEY = "comptoir_alqods_promotion_popup_seen";
-
 export function PromotionPopup() {
+  const pathname = usePathname();
   const [promotion, setPromotion] = useState<Promotion | null>(null);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (sessionStorage.getItem(SESSION_KEY)) return;
+    let cancelled = false;
 
-    fetch("/api/promotions?placement=popup")
+    if (pathname !== "/") {
+      setOpen(false);
+      return;
+    }
+
+    setPromotion(null);
+    setOpen(false);
+
+    fetch("/api/promotions?placement=popup", { cache: "no-store" })
       .then((response) => response.json())
       .then((data) => {
+        if (cancelled) return;
         const firstPromotion = data.promotions?.[0];
         if (firstPromotion) {
           setPromotion(firstPromotion);
           setOpen(true);
-          sessionStorage.setItem(SESSION_KEY, "1");
+        }
+        else {
+          setPromotion(null);
+          setOpen(false);
         }
       })
       .catch(() => undefined);
-  }, []);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
 
   if (!promotion || !open) return null;
 
