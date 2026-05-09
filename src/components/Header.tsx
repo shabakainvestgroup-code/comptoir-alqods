@@ -17,7 +17,7 @@ export function Header() {
   const [socialOpen, setSocialOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const cart = useCart();
-  const links = [{ href: "/", label: "Accueil" }, ...categories.map((category) => ({ href: `/${category.slug}`, label: category.name })), { href: "/contact", label: "Contact" }];
+  const links = [{ href: "/", label: "Accueil" }, ...categories.map((category) => ({ href: `/${category.slug}`, label: category.name })), { href: "/promotions", label: "Promotions" }, { href: "/contact", label: "Contact" }];
   const socialLinks = [
     { href: "#", label: "Facebook" },
     { href: "#", label: "Instagram" },

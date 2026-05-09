@@ -4,6 +4,7 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { BenefitStrip } from "@/components/BenefitStrip";
 import { ProductCard } from "@/components/ProductCard";
 import { getPromotions } from "@/lib/promotions";
+import { getProducts } from "@/lib/productRepository";
 
 export const metadata: Metadata = {
   title: "Promotions | Comptoir AlQods Marrakech",
@@ -12,6 +13,9 @@ export const metadata: Metadata = {
 
 export default async function PromotionsPage() {
   const promotions = await getPromotions({ activeOnly: true });
+  const stockPromotions = (await getProducts()).filter((product) => product.isAvailable && product.badge === "Promo");
+  const campaignProducts = promotions.flatMap((promotion) => promotion.products || []);
+  const promotedProducts = [...campaignProducts, ...stockPromotions].filter((product, index, all) => all.findIndex((item) => item.id === product.id) === index);
 
   return (
     <>
@@ -51,11 +55,11 @@ export default async function PromotionsPage() {
             </div>
           )}
 
-          {promotions.some((promotion) => (promotion.products || []).length > 0) && (
+          {promotedProducts.length > 0 && (
             <div className="mt-12">
               <h2 className="text-3xl font-black text-navy">Produits en promotion</h2>
               <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                {promotions.flatMap((promotion) => promotion.products || []).map((product) => (
+                {promotedProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
