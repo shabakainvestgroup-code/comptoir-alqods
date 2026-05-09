@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { BenefitStrip } from "@/components/BenefitStrip";
+import { ProductCard } from "@/components/ProductCard";
 import { getPromotions } from "@/lib/promotions";
 
 export const metadata: Metadata = {
@@ -31,6 +32,11 @@ export default async function PromotionsPage() {
                   {promotion.subtitle && <p className="text-sm font-extrabold uppercase text-turquoise">{promotion.subtitle}</p>}
                   <h2 className="mt-2 text-2xl font-black text-navy">{promotion.title}</h2>
                   {promotion.description && <p className="mt-3 text-muted">{promotion.description}</p>}
+                  {(promotion.products || []).length > 0 && (
+                    <p className="mt-3 text-sm font-extrabold text-alert">
+                      {promotion.discount_percent ? `-${promotion.discount_percent}%` : "Prix promo"} sur {promotion.products?.length} produit(s)
+                    </p>
+                  )}
                   <Link href={promotion.cta_href || "/contact"} className="mt-5 inline-flex rounded-md bg-turquoise px-5 py-3 font-extrabold text-white">
                     {promotion.cta_label || "Voir l'offre"}
                   </Link>
@@ -42,6 +48,17 @@ export default async function PromotionsPage() {
           {promotions.length === 0 && (
             <div className="rounded-md border border-line bg-white p-8 text-muted shadow-sm">
               Aucune promotion active pour le moment. Revenez bientôt pour découvrir nos prochaines offres.
+            </div>
+          )}
+
+          {promotions.some((promotion) => (promotion.products || []).length > 0) && (
+            <div className="mt-12">
+              <h2 className="text-3xl font-black text-navy">Produits en promotion</h2>
+              <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                {promotions.flatMap((promotion) => promotion.products || []).map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
             </div>
           )}
         </div>

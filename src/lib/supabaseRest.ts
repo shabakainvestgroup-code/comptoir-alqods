@@ -105,4 +105,13 @@ export async function updateRows<T>(table: string, filters: Record<string, strin
   });
 }
 
+export async function deleteRows<T>(table: string, filters: Record<string, string | number | boolean>): Promise<T[]> {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => params.set(key, `eq.${value}`));
+
+  return supabaseFetch(`${table}?${params.toString()}`, {
+    method: "DELETE"
+  });
+}
+
 export { isSupabaseConfigured };
